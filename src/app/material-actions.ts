@@ -3,6 +3,7 @@
 import { randomUUID } from "node:crypto";
 import { and, eq, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { COUNTRIES, EDUCATION, JOB_TYPES, isCountry, isStage, stageName } from "@/content/programs";
 import { getApplicant } from "@/server/applicant";
 import { requireAdmin, requireStudent } from "@/server/auth";
@@ -122,6 +123,25 @@ export async function reviewDoc(fd: FormData) {
     .returning({ userId: schema.documents.userId });
   if (d) revalidatePath(`/admin/hmuus/${d.userId}`);
   revalidatePath("/admin");
+}
+
+/**
+ * Сурагчийг бүх мэдээлэлтэй нь (анкет, баримт, оноо, түүх) бүрмөсөн устгана —
+ * хүсэлтээр эсвэл туршилтын бүртгэл. Батлахын тулд «УСТГАХ» гэж бичүүлнэ.
+ */
+export async function deletePerson(_: FormState, fd: FormData): Promise<FormState> {
+  await requireAdmin();
+  const userId = clean(fd.get("userId"));
+  if (clean(fd.get("confirm")) !== "УСТГАХ") return { error: "Батлахын тулд «УСТГАХ» гэж бичнэ үү." };
+  const db = await getDb();
+  // Зөвхөн сурагч — ажилтны бүртгэлийг эндээс устгах боломжгүй.
+  const gone = await db
+    .delete(schema.users)
+    .where(and(eq(schema.users.id, userId), eq(schema.users.role, "student")))
+    .returning({ id: schema.users.id });
+  if (!gone.length) return { error: "Устгах хүн олдсонгүй." };
+  revalidatePath("/admin");
+  redirect("/admin/hmuus");
 }
 
 export async function saveStaffNote(_: FormState, fd: FormData): Promise<FormState> {

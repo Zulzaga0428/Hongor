@@ -9,7 +9,7 @@ import { getDb, schema } from "@/server/db";
 import { progressOf } from "@/server/queries";
 import { Back, Badge, Progress, formatDate } from "@/components/ui";
 import { Stepper } from "@/components/stepper";
-import { NoteForm, StageForm } from "@/components/admin-forms";
+import { DeletePerson, NoteForm, StageForm } from "@/components/admin-forms";
 
 function age(birth: string | null) {
   if (!birth) return null;
@@ -174,6 +174,10 @@ export default async function Person({ params }: PageProps<"/admin/hmuus/[id]">)
             ))}
           </ul>
         )}
+      </section>
+
+      <section className="mt-6">
+        <DeletePerson userId={u.id} name={a.lastName && a.firstName ? `${a.lastName} ${a.firstName}` : u.name} />
       </section>
     </>
   );
