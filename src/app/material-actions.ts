@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { COUNTRIES, EDUCATION, JOB_TYPES, isCountry, isStage, stageName } from "@/content/programs";
 import { getApplicant } from "@/server/applicant";
-import { requireAdmin, requireStudent } from "@/server/auth";
+import { canSee, hashPin, requireAdmin, requireStaff, requireStudent, type Staff } from "@/server/auth";
 import { getDb, schema } from "@/server/db";
 import type { FormState } from "@/app/actions";
 
@@ -92,37 +92,56 @@ export async function deleteDoc(fd: FormData) {
 
 // ---------------- Админ ----------------
 
+/**
+ * Ажилтан энэ сурагч дээр ажиллах эрхтэй эсэх — бүх ажилтны үйлдэл эндээс эхэлнэ.
+ * Сурагч биш, эсвэл өөр байгууллагад оноогдсон бол null (юу ч болоогүй мэт).
+ */
+async function staffFor(userId: string) {
+  const staff = await requireStaff();
+  const db = await getDb();
+  const [u] = await db.select({ role: schema.users.role }).from(schema.users).where(eq(schema.users.id, userId)).limit(1);
+  if (!u || u.role !== "student") return null;
+  const a = await getApplicant(userId);
+  if (!canSee(staff, a.orgId)) return null;
+  return { staff, a, db };
+}
+
+/** Түүхэнд «Хонгор Түрүү · Болд» гэж үлдэнэ — хэн хийснийг байгууллагатай нь. */
+const byLabel = (s: Staff) => (s.org ? `${s.org.name} · ${s.user.name}` : s.user.name);
+
 export async function setStage(_: FormState, fd: FormData): Promise<FormState> {
-  const admin = await requireAdmin();
   const userId = clean(fd.get("userId"));
+  const ctx = await staffFor(userId);
+  if (!ctx) return { error: "Энэ хүн дээр ажиллах эрхгүй." };
+  const { staff, a, db } = ctx;
   const stage = clean(fd.get("stage"));
   const note = clean(fd.get("note"), 500);
   if (!isStage(stage)) return { error: "Шат буруу байна." };
-  const a = await getApplicant(userId);
   if (a.stage === stage && !note) return { error: "Аль хэдийн энэ шатанд байна." };
-  const db = await getDb();
   const now = new Date();
   await db.update(schema.applicants).set({ stage, stageAt: now, updatedAt: now }).where(eq(schema.applicants.userId, userId));
-  await db.insert(schema.stageEvents).values({ id: randomUUID(), userId, stage, note: note || null, byName: admin.name, at: now });
-  revalidatePath(`/admin/hmuus/${userId}`);
-  revalidatePath("/admin");
+  await db.insert(schema.stageEvents).values({ id: randomUUID(), userId, stage, note: note || null, byName: byLabel(staff), orgId: staff.org?.id ?? null, at: now });
+  revalidatePath(`${staff.base}/hmuus/${userId}`);
+  revalidatePath(staff.base);
   return { ok: `«${stageName(stage)}» болголоо.` };
 }
 
 export async function reviewDoc(fd: FormData) {
-  await requireAdmin();
   const id = clean(fd.get("id"));
   const status = clean(fd.get("status"));
   const note = clean(fd.get("note"), 300);
   if (status !== "ok" && status !== "rejected") return;
   const db = await getDb();
-  const [d] = await db
+  const [doc] = await db.select({ userId: schema.documents.userId }).from(schema.documents).where(eq(schema.documents.id, id)).limit(1);
+  if (!doc) return;
+  const ctx = await staffFor(doc.userId);
+  if (!ctx) return;
+  await db
     .update(schema.documents)
     .set({ status, note: status === "rejected" ? note || "Тод биш эсвэл буруу баримт" : null })
-    .where(eq(schema.documents.id, id))
-    .returning({ userId: schema.documents.userId });
-  if (d) revalidatePath(`/admin/hmuus/${d.userId}`);
-  revalidatePath("/admin");
+    .where(eq(schema.documents.id, id));
+  revalidatePath(`${ctx.staff.base}/hmuus/${doc.userId}`);
+  revalidatePath(ctx.staff.base);
 }
 
 /**
@@ -145,12 +164,107 @@ export async function deletePerson(_: FormState, fd: FormData): Promise<FormStat
 }
 
 export async function saveStaffNote(_: FormState, fd: FormData): Promise<FormState> {
-  await requireAdmin();
   const userId = clean(fd.get("userId"));
+  const ctx = await staffFor(userId);
+  if (!ctx) return { error: "Энэ хүн дээр ажиллах эрхгүй." };
   const note = clean(fd.get("note"), 3000);
-  await getApplicant(userId);
-  const db = await getDb();
-  await db.update(schema.applicants).set({ staffNote: note || null }).where(eq(schema.applicants.userId, userId));
-  revalidatePath(`/admin/hmuus/${userId}`);
+  await ctx.db.update(schema.applicants).set({ staffNote: note || null }).where(eq(schema.applicants.userId, userId));
+  revalidatePath(`${ctx.staff.base}/hmuus/${userId}`);
   return { ok: "Тэмдэглэл хадгалагдлаа." };
+}
+
+// ---------------- Платформын эзэн: байгууллага ----------------
+
+/**
+ * Хүнийг байгууллагад оноох / шилжүүлэх / буцааж авах. Нэг удаад нэг байгууллага.
+ * Шилжүүлэхэд хуучин байгууллага нь тэр хүнийг харахаа шууд болино. Тэмдэглэл
+ * (staffNote) өмнөх байгууллагынх тул шилжүүлэхэд арилгана.
+ */
+export async function assignOrg(_: FormState, fd: FormData): Promise<FormState> {
+  const admin = await requireAdmin();
+  const userId = clean(fd.get("userId"));
+  const orgId = clean(fd.get("orgId")) || null;
+  const db = await getDb();
+  const [u] = await db.select({ role: schema.users.role }).from(schema.users).where(eq(schema.users.id, userId)).limit(1);
+  if (!u || u.role !== "student") return { error: "Хүн олдсонгүй." };
+  const a = await getApplicant(userId);
+  if (!a.consentAt) return { error: "Хүн анкетаа бөглөж, мэдээлэл дамжуулахыг зөвшөөрөөгүй байна." };
+  let orgName = "";
+  if (orgId) {
+    const [o] = await db.select().from(schema.organizations).where(eq(schema.organizations.id, orgId)).limit(1);
+    if (!o || !o.active) return { error: "Байгууллага олдсонгүй." };
+    orgName = o.name;
+  }
+  if ((a.orgId ?? null) === orgId) return { error: "Аль хэдийн тэнд оноогдсон байна." };
+  const now = new Date();
+  await db
+    .update(schema.applicants)
+    .set({ orgId, assignedAt: orgId ? now : null, staffNote: a.orgId && a.orgId !== orgId ? null : a.staffNote, updatedAt: now })
+    .where(eq(schema.applicants.userId, userId));
+  await db.insert(schema.stageEvents).values({
+    id: randomUUID(),
+    userId,
+    stage: a.stage,
+    note: orgId ? `«${orgName}» хариуцна` : "Байгууллагаас буцааж авав",
+    byName: admin.name,
+    at: now,
+  });
+  revalidatePath(`/admin/hmuus/${userId}`);
+  revalidatePath("/admin");
+  return { ok: orgId ? `«${orgName}»-д оноолоо.` : "Буцааж авлаа." };
+}
+
+const COUNTRY_KEYS = ["korea", "japan", "czech"];
+
+export async function createOrg(_: FormState, fd: FormData): Promise<FormState> {
+  await requireAdmin();
+  const name = clean(fd.get("name"), 120);
+  const contactName = clean(fd.get("contactName"), 80);
+  const phone = clean(fd.get("phone")).replace(/\D/g, "");
+  const countries = fd.getAll("countries").map(String).filter((c) => COUNTRY_KEYS.includes(c));
+  if (name.length < 2) return { error: "Байгууллагын нэр бичнэ үү." };
+  if (phone && !/^[0-9]{8}$/.test(phone)) return { error: "Утас 8 оронтой." };
+  const db = await getDb();
+  await db.insert(schema.organizations).values({ id: randomUUID(), name, contactName: contactName || null, phone: phone || null, countries: countries.join(",") });
+  revalidatePath("/admin/baiguullaga");
+  return { ok: `«${name}» нэмэгдлээ.` };
+}
+
+/** Байгууллагын ажилтанд нэвтрэх эрх: утас + 4 оронтой код. Кодыг ажилтанд хэлж өгнө. */
+export async function createOrgStaff(_: FormState, fd: FormData): Promise<FormState> {
+  await requireAdmin();
+  const orgId = clean(fd.get("orgId"));
+  const name = clean(fd.get("name"), 60);
+  const phone = clean(fd.get("phone")).replace(/\D/g, "");
+  const pin = clean(fd.get("pin")).replace(/\D/g, "");
+  if (name.length < 2) return { error: "Ажилтны нэр бичнэ үү." };
+  if (!/^[0-9]{8}$/.test(phone)) return { error: "Утас 8 оронтой." };
+  if (!/^[0-9]{4}$/.test(pin)) return { error: "Код 4 оронтой." };
+  const db = await getDb();
+  const [o] = await db.select().from(schema.organizations).where(eq(schema.organizations.id, orgId)).limit(1);
+  if (!o) return { error: "Байгууллага олдсонгүй." };
+  const [taken] = await db.select({ id: schema.users.id }).from(schema.users).where(eq(schema.users.phone, phone)).limit(1);
+  if (taken) return { error: "Энэ дугаар өөр бүртгэлд ашиглагдаж байна." };
+  await db.insert(schema.users).values({ id: randomUUID(), name, phone, pinHash: await hashPin(pin), role: "org", orgId, level: "anhan" });
+  revalidatePath("/admin/baiguullaga");
+  return { ok: `${name} — ${phone} / ${pin} кодоор нэвтэрнэ.` };
+}
+
+export async function toggleOrg(fd: FormData) {
+  await requireAdmin();
+  const id = clean(fd.get("id"));
+  const db = await getDb();
+  const [o] = await db.select({ active: schema.organizations.active }).from(schema.organizations).where(eq(schema.organizations.id, id)).limit(1);
+  if (!o) return;
+  await db.update(schema.organizations).set({ active: o.active ? 0 : 1 }).where(eq(schema.organizations.id, id));
+  revalidatePath("/admin/baiguullaga");
+}
+
+/** Ажилтны эрхийг хаах — бүртгэлийг устгана (горилогчийн өгөгдөлд нөлөөгүй). */
+export async function removeOrgStaff(fd: FormData) {
+  await requireAdmin();
+  const id = clean(fd.get("id"));
+  const db = await getDb();
+  await db.delete(schema.users).where(and(eq(schema.users.id, id), eq(schema.users.role, "org")));
+  revalidatePath("/admin/baiguullaga");
 }

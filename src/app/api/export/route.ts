@@ -1,7 +1,9 @@
 import { COUNTRIES, isCountry, stageName } from "@/content/programs";
 import { LEVELS, type LevelId } from "@/content/lessons";
 import { listApplicants } from "@/server/applicant";
+import { eq } from "drizzle-orm";
 import { currentUser } from "@/server/auth";
+import { getDb, schema } from "@/server/db";
 
 /** Excel-д монгол үсэг зөв харагдахын тулд UTF-8 BOM-той CSV. */
 function cell(v: unknown): string {
@@ -13,9 +15,15 @@ function cell(v: unknown): string {
 
 export async function GET() {
   const u = await currentUser();
-  if (!u || u.role !== "admin") return new Response("Эрхгүй", { status: 403 });
+  // Админ — бүгд; байгууллагын ажилтан — зөвхөн өөрт оноогдсон хүмүүс.
+  if (!u || (u.role !== "admin" && !(u.role === "org" && u.orgId))) return new Response("Эрхгүй", { status: 403 });
+  if (u.role === "org") {
+    const db = await getDb();
+    const [o] = await db.select({ active: schema.organizations.active }).from(schema.organizations).where(eq(schema.organizations.id, u.orgId!)).limit(1);
+    if (!o?.active) return new Response("Эрхгүй", { status: 403 });
+  }
 
-  const rows = await listApplicants();
+  const rows = await listApplicants(u.role === "org" ? u.orgId : null);
   const head = ["Овог", "Нэр", "Бүртгэлийн нэр", "Утас", "Улс", "Хөтөлбөр", "Ажлын чиглэл", "Төрсөн огноо", "Хүйс", "Өндөр", "Жин", "Боловсрол", "Хаяг", "Хэлний түвшин", "Шат", "Баримт", "Яаралтай үед", "Бүртгүүлсэн"];
   const lines = rows.map(({ user, a, stage, docs }) =>
     [

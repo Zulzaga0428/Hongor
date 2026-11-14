@@ -68,6 +68,12 @@ export async function login(_: FormState, fd: FormData): Promise<FormState> {
     return { error: "Дугаар эсвэл нууц код буруу байна." };
   }
   clearFails(phone);
+  if (u.role === "org") {
+    const [o] = u.orgId
+      ? await db.select({ active: schema.organizations.active }).from(schema.organizations).where(eq(schema.organizations.id, u.orgId)).limit(1)
+      : [];
+    if (!o?.active) return { error: "Таны байгууллагын эрх түр хаагдсан байна. Платформын удирдлагад хандана уу." };
+  }
   await createSession(u.id);
   redirect(homeFor(u.role));
 }

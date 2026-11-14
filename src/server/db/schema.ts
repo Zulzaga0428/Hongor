@@ -5,12 +5,31 @@ export const users = pgTable("users", {
   name: text("name").notNull(),
   phone: text("phone").notNull().unique(),
   pinHash: text("pin_hash").notNull(),
-  /** student | teacher */
+  /**
+   * student — сурагч · teacher — хэлний багш · admin — платформын эзэн (бүх байгууллагыг харна)
+   * org — хамтрагч байгууллагын ажилтан (зөвхөн өөрийн org_id-д оноогдсон хүмүүс)
+   */
   role: text("role").notNull().default("student"),
   /** anhan | dund | ahisan */
   level: text("level").notNull().default("anhan"),
+  /** role=org үед заавал — аль байгууллагын ажилтан вэ */
+  orgId: text("org_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+/** Хамтрагч байгууллага (лицензтэй зуучлал) — тус бүр өөрийн самбартай. */
+export const organizations = pgTable("organizations", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  contactName: text("contact_name"),
+  phone: text("phone"),
+  /** Аль улс руу явуулдаг вэ — "korea,japan" */
+  countries: text("countries").notNull().default(""),
+  active: integer("active").notNull().default(1),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export type Organization = typeof organizations.$inferSelect;
 
 export const lessonProgress = pgTable(
   "lesson_progress",
@@ -80,6 +99,9 @@ export const applicants = pgTable("applicants", {
   stageAt: timestamp("stage_at", { withTimezone: true }).notNull().defaultNow(),
   /** Зөвхөн ажилтнуудад харагдана. */
   staffNote: text("staff_note"),
+  /** Аль байгууллага хариуцаж байна. Нэг удаад нэг. null = хуваарилаагүй. */
+  orgId: text("org_id"),
+  assignedAt: timestamp("assigned_at", { withTimezone: true }),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -103,6 +125,8 @@ export const stageEvents = pgTable("stage_events", {
   stage: text("stage").notNull(),
   note: text("note"),
   byName: text("by_name"),
+  /** Аль байгууллагын ажилтан хийсэн (null = платформ/систем). Бусад байгууллагаас тайлбарыг нуухад. */
+  orgId: text("org_id"),
   at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
 });
 

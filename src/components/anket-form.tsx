@@ -173,7 +173,8 @@ export function AnketForm({ initial, consented, submitted }: { initial: Values; 
         <label className="flex items-start gap-3 rounded-2xl bg-white p-4 text-sm">
           <input type="checkbox" name="consent" className="mt-0.5 h-5 w-5 shrink-0 accent-[var(--red)]" />
           <span>
-            Миний хувийн мэдээллийг гадаадад ажилд зуучлах зорилгоор боловсруулж, ажил олгогчид дамжуулахыг зөвшөөрч байна.{" "}
+            Миний хувийн мэдээллийг гадаадад ажилд зуучлах зорилгоор боловсруулж, албан ёсны эрхтэй хамтрагч зуучлалын байгууллага болон ажил
+            олгогчид дамжуулахыг зөвшөөрч байна.{" "}
             <Link href="/nuutslal" className="font-bold text-red underline">
               Нууцлалын бодлого
             </Link>

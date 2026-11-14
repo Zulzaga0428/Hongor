@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { COUNTRIES, isCountry, stageName } from "@/content/programs";
 import { anketMissing, docsOf, docsProgress, getApplicant, historyOf } from "@/server/applicant";
+import { eq } from "drizzle-orm";
 import { requireStudent } from "@/server/auth";
+import { getDb, schema } from "@/server/db";
 import { Badge, formatDate } from "@/components/ui";
 import { Stepper } from "@/components/stepper";
 
@@ -11,6 +13,10 @@ export default async function Material() {
   const [docs, history] = await Promise.all([docsOf(u.id), historyOf(u.id)]);
   const missing = anketMissing(a);
   const dp = docsProgress(docs);
+  const db = await getDb();
+  const [org] = a.orgId
+    ? await db.select({ name: schema.organizations.name, phone: schema.organizations.phone }).from(schema.organizations).where(eq(schema.organizations.id, a.orgId)).limit(1)
+    : [];
 
   return (
     <>
@@ -18,6 +24,17 @@ export default async function Material() {
       <p className="mt-1 text-sm text-muted">
         {isCountry(a.country) ? `${COUNTRIES[a.country].name} · ${a.program ?? ""}` : "Анкетаа бөглөөд явах улсаа сонго"}
       </p>
+      {/* Хувийн мэдээлэл хэнд очсоныг хүн өөрөө мэдэх ёстой */}
+      <div className="mt-3 rounded-2xl bg-brand-soft px-4 py-3 text-sm">
+        {org ? (
+          <>
+            Таныг хариуцаж буй байгууллага: <b className="text-brand">{org.name}</b>
+            {org.phone && <span className="text-muted"> · {org.phone}</span>}
+          </>
+        ) : (
+          <span className="text-muted">Анкет, баримтаа бүрдүүлсний дараа танд тохирох албан ёсны байгууллагыг оноож өгнө.</span>
+        )}
+      </div>
 
       <section className="mt-5 grid grid-cols-1 gap-3 lg:grid-cols-2 lg:gap-4">
         <Link href="/material/anket" className="card flex items-center gap-4 p-4">

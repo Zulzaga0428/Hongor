@@ -102,6 +102,20 @@ export async function seedIfEmpty(db: NodePgDatabase<typeof schema>) {
     { name: "Номин (жишээ)", phone: "90000004", level: "ahisan", stage: "visa", country: "japan", job: "Хүнсний үйлдвэр", done: [["ahisan-1", 4, 4]] },
     { name: "Ганбат (жишээ)", phone: "90000005", level: "anhan", stage: "training", country: "korea", job: "Үйлдвэр", done: [] },
   ] as const;
+
+  // Жишээ хамтрагч байгууллагууд + ажилтан (код 1234). Тэмүүлэн, Билгүүн → А; Номин → Б.
+  const orgA = randomUUID();
+  const orgB = randomUUID();
+  await db.insert(schema.organizations).values([
+    { id: orgA, name: "Хонгор Түрүү (жишээ)", contactName: "Эгч", phone: "99110000", countries: "japan,korea,czech" },
+    { id: orgB, name: "Хамтрагч Б (жишээ)", contactName: "Бат", phone: "99220000", countries: "japan" },
+  ]);
+  await db.insert(schema.users).values([
+    { id: randomUUID(), name: "Сараа (А ажилтан)", phone: "70000001", pinHash: await pinHash("1234"), role: "org", orgId: orgA, level: "anhan" },
+    { id: randomUUID(), name: "Дорж (Б ажилтан)", phone: "70000002", pinHash: await pinHash("1234"), role: "org", orgId: orgB, level: "anhan" },
+  ]);
+  const orgOf: Record<string, string> = { "90000001": orgA, "90000003": orgA, "90000004": orgB };
+
   for (const s of students) {
     const id = randomUUID();
     await db.insert(schema.users).values({ id, name: s.name, phone: s.phone, pinHash: await pinHash("1111"), role: "student", level: s.level });
@@ -119,6 +133,8 @@ export async function seedIfEmpty(db: NodePgDatabase<typeof schema>) {
       consentAt: new Date(),
       submittedAt: s.stage === "registered" ? null : new Date(),
       stage: s.stage,
+      orgId: orgOf[s.phone] ?? null,
+      assignedAt: orgOf[s.phone] ? new Date() : null,
     });
     await db.insert(schema.stageEvents).values({ id: randomUUID(), userId: id, stage: s.stage, note: "Жишээ өгөгдөл", byName: "Систем" });
     for (const [lessonId, score, total] of s.done) {

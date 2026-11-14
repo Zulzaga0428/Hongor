@@ -6,12 +6,21 @@ import { HeroSlider } from "@/components/site/hero-slider";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
 
-export default async function Landing() {
+export default async function Landing({ searchParams }: PageProps<"/">) {
   const u = await currentUser();
+  const closed = (await searchParams).haagdsan === "1" && u?.role === "org";
 
   return (
     <div className="bg-white text-ink">
-      <SiteHeader overHero home={u ? homeFor(u.role) : null} />
+      {/* Хаагдсан байгууллагын ажилтанд «Миний самбар» товч харуулбал дахин энд буцна */}
+      <SiteHeader overHero home={u && !closed ? homeFor(u.role) : null} />
+      {closed && (
+        <div className="fixed inset-x-0 top-16 z-40 mx-auto max-w-xl px-5 lg:top-24">
+          <p role="alert" className="rounded-2xl bg-white px-5 py-4 text-sm font-bold text-red-deep shadow-xl">
+            Таны байгууллагын эрх түр хаагдсан байна. Платформын удирдлагад хандана уу.
+          </p>
+        </div>
+      )}
       <HeroSlider />
 
       {/* 3 улс — hero-гийн доод ирмэг дээр давхарлана */}

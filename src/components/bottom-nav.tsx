@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { BRAND } from "@/content/site";
 
 type Item = { href: string; label: string; icon: string };
 
@@ -16,8 +17,15 @@ const STUDENT: Item[] = [
 const ADMIN: Item[] = [
   { href: "/admin", label: "Самбар", icon: "家" },
   { href: "/admin/hmuus", label: "Хүмүүс", icon: "人" },
+  { href: "/admin/baiguullaga", label: "Байгууллага", icon: "社" },
   { href: "/bagsh", label: "Сургалт", icon: "学" },
   { href: "/admin/profil", label: "Би", icon: "私" },
+];
+
+const ORG: Item[] = [
+  { href: "/org", label: "Самбар", icon: "家" },
+  { href: "/org/hmuus", label: "Хүмүүс", icon: "人" },
+  { href: "/org/profil", label: "Би", icon: "私" },
 ];
 
 const TEACHER: Item[] = [
@@ -27,26 +35,26 @@ const TEACHER: Item[] = [
   { href: "/bagsh/profil", label: "Би", icon: "私" },
 ];
 
-export function BottomNav({ role = "student" }: { role?: "student" | "teacher" | "admin" }) {
+export function BottomNav({ role = "student" }: { role?: "student" | "teacher" | "admin" | "org" }) {
   const path = usePathname();
-  const items = role === "admin" ? ADMIN : role === "teacher" ? TEACHER : STUDENT;
+  const items = role === "admin" ? ADMIN : role === "org" ? ORG : role === "teacher" ? TEACHER : STUDENT;
   const active = (href: string) => {
     if (href === "/bagsh") return path === "/bagsh" || path.startsWith("/bagsh/shalgah") || (role === "admin" && path.startsWith("/bagsh"));
-    if (href === "/admin") return path === "/admin";
+    if (href === "/admin" || href === "/org") return path === href;
     return path === href || path.startsWith(href + "/");
   };
-  const roleLabel = role === "admin" ? "Удирдлага" : role === "teacher" ? "Багш" : "Сурагч";
+  const roleLabel = role === "admin" ? "Платформ" : role === "org" ? "Байгууллага" : role === "teacher" ? "Багш" : "Сурагч";
   return (
     <>
       {/* Компьютер: зүүн талын цэс */}
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col border-r border-line bg-white px-4 py-6 lg:flex">
         <Link href={items[0].href} className="mb-8 flex items-center gap-3 px-2">
-          <span className="jp flex h-11 w-11 items-center justify-center rounded-full bg-red text-lg font-extrabold text-white shadow-[0_4px_0_var(--red-deep)]">
-            日
+          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand text-lg font-extrabold text-white shadow-[0_4px_0_var(--brand-deep)]">
+            {BRAND.name.slice(0, 1)}
           </span>
           <span>
-            <span className="block font-extrabold leading-tight">Хонгор Түрүү</span>
-            <span className="block text-xs font-bold text-muted">日本語クラス · {roleLabel}</span>
+            <span className="block font-extrabold leading-tight">{BRAND.name}</span>
+            <span className="block text-xs font-bold text-muted">{roleLabel}</span>
           </span>
         </Link>
         <ul className="grid grid-cols-1 gap-1">
@@ -72,7 +80,7 @@ export function BottomNav({ role = "student" }: { role?: "student" | "teacher" |
 
       {/* Утас: доод цэс */}
       <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
-      <ul className={`mx-auto grid max-w-md ${items.length === 5 ? "grid-cols-5" : "grid-cols-4"}`}>
+      <ul className="mx-auto grid max-w-md" style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
         {items.map((it) => {
           const on = active(it.href);
           return (

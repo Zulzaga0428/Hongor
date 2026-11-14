@@ -96,6 +96,20 @@ CREATE TABLE IF NOT EXISTS stage_events (
   at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS stage_events_user_idx ON stage_events (user_id, at);
+CREATE TABLE IF NOT EXISTS organizations (
+  id text PRIMARY KEY,
+  name text NOT NULL,
+  contact_name text,
+  phone text,
+  countries text NOT NULL DEFAULT '',
+  active integer NOT NULL DEFAULT 1,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS org_id text REFERENCES organizations(id) ON DELETE SET NULL;
+ALTER TABLE applicants ADD COLUMN IF NOT EXISTS org_id text REFERENCES organizations(id) ON DELETE SET NULL;
+ALTER TABLE applicants ADD COLUMN IF NOT EXISTS assigned_at timestamptz;
+CREATE INDEX IF NOT EXISTS applicants_org_idx ON applicants (org_id);
+ALTER TABLE stage_events ADD COLUMN IF NOT EXISTS org_id text;
 `;
 
 async function open(): Promise<Db> {

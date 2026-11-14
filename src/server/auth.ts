@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { SignJWT, jwtVerify } from "jose";
 import { getDb, schema } from "@/server/db";
-import type { User } from "@/server/db/schema";
+import type { Organization, User } from "@/server/db/schema";
 
 const COOKIE = "kt_session";
 const MAX_AGE = 60 * 60 * 24 * 60; // 60 хоног — сурагч утсандаа дахин дахин нэвтрэхгүй
@@ -104,7 +104,33 @@ export async function currentUser(): Promise<User | null> {
 
 /** Дүр бүрийн нүүр хуудас. */
 export function homeFor(role: string): string {
-  return role === "admin" ? "/admin" : role === "teacher" ? "/bagsh" : "/home";
+  return role === "admin" ? "/admin" : role === "org" ? "/org" : role === "teacher" ? "/bagsh" : "/home";
+}
+
+/**
+ * Горилогчдыг удирддаг ажилтан. `org === null` → платформын эзэн (бүгдийг харна).
+ * `org` байвал ЗӨВХӨН applicants.org_id = org.id хүмүүсийг харна — энэ бол
+ * байгууллагуудын хоорондох хана. Шалгалтыг дуудагч бүр `canSee`-ээр хийнэ.
+ */
+export type Staff = { user: User; org: Organization | null; base: "/admin" | "/org" };
+
+export async function requireStaff(): Promise<Staff> {
+  const u = await currentUser();
+  if (!u) redirect("/nevtreh");
+  if (u.role === "admin") return { user: u, org: null, base: "/admin" };
+  if (u.role === "org" && u.orgId) {
+    const db = await getDb();
+    const [o] = await db.select().from(schema.organizations).where(eq(schema.organizations.id, u.orgId)).limit(1);
+    if (o && o.active) return { user: u, org: o, base: "/org" };
+    // Байгууллага хаагдсан — /org руу буцаавал эцэс төгсгөлгүй redirect болно.
+    redirect("/?haagdsan=1");
+  }
+  redirect(homeFor(u.role));
+}
+
+/** Тухайн ажилтан энэ горилогчийг харах эрхтэй юу. */
+export function canSee(staff: Staff, applicantOrgId: string | null | undefined): boolean {
+  return staff.org === null || (!!applicantOrgId && applicantOrgId === staff.org.id);
 }
 
 export async function requireStudent(): Promise<User> {

@@ -1,5 +1,5 @@
 import "server-only";
-import { desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { DOC_KINDS } from "@/content/programs";
 import { getDb, schema } from "@/server/db";
 import type { Applicant } from "@/server/db/schema";
@@ -56,24 +56,37 @@ export async function historyOf(userId: string) {
 
 // ---------------- Админ ----------------
 
-export async function listApplicants() {
+/**
+ * `orgId` өгвөл ЗӨВХӨН тэр байгууллагад оноогдсон хүмүүс — SQL түвшинд шүүнэ,
+ * бусад байгууллагын мөр хэзээ ч санах ойд ч орохгүй.
+ */
+export async function listApplicants(orgId: string | null = null) {
   const db = await getDb();
+  const where = orgId
+    ? and(eq(schema.users.role, "student"), eq(schema.applicants.orgId, orgId))
+    : eq(schema.users.role, "student");
   const rows = await db
-    .select({ user: schema.users, a: schema.applicants })
+    .select({ user: schema.users, a: schema.applicants, org: { id: schema.organizations.id, name: schema.organizations.name } })
     .from(schema.users)
     .leftJoin(schema.applicants, eq(schema.applicants.userId, schema.users.id))
-    .where(eq(schema.users.role, "student"))
+    .leftJoin(schema.organizations, eq(schema.organizations.id, schema.applicants.orgId))
+    .where(where)
     .orderBy(desc(schema.users.createdAt));
-  const docs = await db
-    .select({ userId: schema.documents.userId, kind: schema.documents.kind, status: schema.documents.status })
-    .from(schema.documents);
+  const ids = rows.map((r) => r.user.id);
+  const docs = ids.length
+    ? await db
+        .select({ userId: schema.documents.userId, kind: schema.documents.kind, status: schema.documents.status })
+        .from(schema.documents)
+        .where(inArray(schema.documents.userId, ids))
+    : [];
   const byUser = new Map<string, { kind: string; status: string }[]>();
   for (const d of docs) byUser.set(d.userId, [...(byUser.get(d.userId) ?? []), d]);
-  return rows.map(({ user, a }) => {
+  return rows.map(({ user, a, org }) => {
     const ds = byUser.get(user.id) ?? [];
     return {
       user,
       a,
+      org: org?.id ? org : null,
       stage: a?.stage ?? "registered",
       docs: docsProgress(ds),
       pendingDocs: ds.filter((d) => d.status === "pending").length,
@@ -84,8 +97,21 @@ export async function listApplicants() {
 
 export type ApplicantRow = Awaited<ReturnType<typeof listApplicants>>[number];
 
-export async function pendingDocCount() {
+export async function pendingDocCount(orgId: string | null = null) {
   const db = await getDb();
-  const [r] = await db.select({ n: sql<number>`count(*)::int` }).from(schema.documents).where(eq(schema.documents.status, "pending"));
+  if (!orgId) {
+    const [r] = await db.select({ n: sql<number>`count(*)::int` }).from(schema.documents).where(eq(schema.documents.status, "pending"));
+    return r?.n ?? 0;
+  }
+  const [r] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(schema.documents)
+    .innerJoin(schema.applicants, eq(schema.applicants.userId, schema.documents.userId))
+    .where(and(eq(schema.documents.status, "pending"), eq(schema.applicants.orgId, orgId)));
   return r?.n ?? 0;
+}
+
+export async function listOrgs() {
+  const db = await getDb();
+  return db.select().from(schema.organizations).orderBy(schema.organizations.createdAt);
 }
