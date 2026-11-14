@@ -28,7 +28,7 @@ export default async function Students({ searchParams }: PageProps<"/bagsh/surag
       {list.length === 0 ? (
         <div className="card mt-5 p-6 text-center text-sm text-muted">Энэ түвшинд сурагч алга.</div>
       ) : (
-        <ul className="mt-5 grid grid-cols-1 gap-3">
+        <ul className="mt-5 grid grid-cols-1 gap-3 lg:grid-cols-2 lg:gap-4">
           {list.map((s) => (
             <li key={s.id} className="card p-4">
               <div className="flex items-center gap-3">

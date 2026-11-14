@@ -12,14 +12,30 @@ export function Hinomaru({ size = 56, children }: { size?: number; children?: Re
   );
 }
 
+/**
+ * Утас: нэг багана (max-w-md) + доод цэс.
+ * Компьютер (lg+): зүүн талд цэс, контент max-w-5xl. Цэсгүй (нэвтрэх г.м.)
+ * хуудас компьютер дээр төвд карт болж харагдана.
+ */
 export function Page({ children, nav }: { children: ReactNode; nav?: ReactNode }) {
+  if (!nav)
+    return (
+      <div className="flex min-h-dvh w-full items-start justify-center lg:items-center lg:py-12">
+        <main className="w-full max-w-md px-4 pb-10 pt-5 lg:rounded-[2rem] lg:border lg:border-line lg:bg-white lg:px-10 lg:py-10 lg:shadow-[0_8px_40px_rgba(168,27,47,0.08)]">
+          {children}
+        </main>
+      </div>
+    );
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col">
-      <main className={`flex-1 px-4 pt-5 ${nav ? "pb-28" : "pb-10"}`}>{children}</main>
+    <div className="min-h-dvh w-full lg:pl-64">
       {nav}
+      <main className="mx-auto w-full max-w-md px-4 pb-28 pt-5 lg:max-w-5xl lg:px-10 lg:pb-16 lg:pt-10">{children}</main>
     </div>
   );
 }
+
+/** Компьютер дээр хоёр багана — утсан дээр нэг. */
+export const listGrid = "grid grid-cols-1 gap-3 lg:grid-cols-2 lg:gap-4";
 
 export function Back({ href, label = "Буцах" }: { href: string; label?: string }) {
   return (

@@ -53,7 +53,7 @@ export default async function People({ searchParams }: PageProps<"/admin/hmuus">
       </div>
 
       <p className="mt-4 text-xs font-bold text-muted">{rows.length} хүн</p>
-      <ul className="mt-2 grid grid-cols-1 gap-3">
+      <ul className="mt-2 grid grid-cols-1 gap-3 lg:grid-cols-2 lg:gap-4">
         {rows.map((r) => (
           <li key={r.user.id}>
             <Link href={`/admin/hmuus/${r.user.id}`} className="card block p-4">

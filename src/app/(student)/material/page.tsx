@@ -19,7 +19,7 @@ export default async function Material() {
         {isCountry(a.country) ? `${COUNTRIES[a.country].name} · ${a.program ?? ""}` : "Анкетаа бөглөөд явах улсаа сонго"}
       </p>
 
-      <section className="mt-5 grid grid-cols-1 gap-3">
+      <section className="mt-5 grid grid-cols-1 gap-3 lg:grid-cols-2 lg:gap-4">
         <Link href="/material/anket" className="card flex items-center gap-4 p-4">
           <span className="jp flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-pink text-xl font-extrabold text-red">履</span>
           <div className="min-w-0 flex-1">

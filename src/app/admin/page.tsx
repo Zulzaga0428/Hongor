@@ -22,7 +22,7 @@ export default async function AdminHome() {
       <p className="jp text-sm font-bold text-red">お疲れさまです</p>
       <h1 className="text-2xl font-extrabold">{me.name}</h1>
 
-      <section className="mt-5 grid grid-cols-2 gap-3">
+      <section className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
         <div className="rounded-3xl bg-red p-4 text-white shadow-[0_6px_0_var(--red-deep)]">
           <div className="text-3xl font-extrabold">{rows.length}</div>
           <div className="text-sm opacity-90">нийт хүн</div>
@@ -38,7 +38,9 @@ export default async function AdminHome() {
         </Link>
       </section>
 
-      <section className="card mt-5 p-5">
+      <div className="lg:mt-6 lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
+      <div>
+      <section className="card mt-5 p-5 lg:mt-0">
         <h2 className="mb-4 font-extrabold">Шат бүрт</h2>
         <ul className="grid grid-cols-1 gap-2.5">
           {STAGES.map((s) => (
@@ -72,8 +74,9 @@ export default async function AdminHome() {
           </Link>
         ))}
       </section>
+      </div>
 
-      <section className="mt-7">
+      <section className="mt-7 lg:mt-0">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-lg font-extrabold">Сүүлд бүртгүүлсэн</h2>
           <Link href="/admin/hmuus" className="text-sm font-bold text-red">
@@ -96,11 +99,11 @@ export default async function AdminHome() {
             </li>
           ))}
         </ul>
+        <a href="/api/export" className="btn btn-ghost mt-6">
+          ⬇ Excel-ээр татах (CSV)
+        </a>
       </section>
-
-      <a href="/api/export" className="btn btn-ghost mt-6">
-        ⬇ Excel-ээр татах (CSV)
-      </a>
+      </div>
     </>
   );
 }

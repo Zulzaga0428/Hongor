@@ -40,7 +40,7 @@ export default async function TeacherHome() {
         {pending.length === 0 ? (
           <div className="card p-5 text-center text-sm text-muted">Бүгдийг шалгачихсан байна 🎉</div>
         ) : (
-          <ul className="grid grid-cols-1 gap-3">
+          <ul className="grid grid-cols-1 gap-3 lg:grid-cols-2 lg:gap-4">
             {pending.map((p) => (
               <li key={p.id}>
                 <Link href={`/bagsh/shalgah/${p.id}`} className="card flex items-center gap-3 p-4">

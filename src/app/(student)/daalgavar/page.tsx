@@ -14,7 +14,7 @@ export default async function Assignments() {
       {list.length === 0 ? (
         <div className="card mt-6 p-6 text-center text-sm text-muted">Одоохондоо даалгавар алга.</div>
       ) : (
-        <ul className="mt-5 grid grid-cols-1 gap-3">
+        <ul className="mt-5 grid grid-cols-1 gap-3 lg:grid-cols-2 lg:gap-4">
           {list.map((a) => {
             const s = a.submission;
             const status = s?.gradedAt ? (

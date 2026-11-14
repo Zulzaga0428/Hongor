@@ -57,7 +57,10 @@ export default async function Person({ params }: PageProps<"/admin/hmuus/[id]">)
         </div>
       </div>
 
-      <section className="card mt-5 p-5">
+      {/* Утас: явц эхэнд. Компьютер: зүүнд анкет/баримт, баруунд явц (наалттай). */}
+      <div className="mt-5 flex flex-col lg:grid lg:grid-cols-[1fr_22rem] lg:items-start lg:gap-6">
+      <div className="lg:sticky lg:top-10 lg:order-2">
+      <section className="card p-5">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="font-extrabold">Явц</h2>
           <Badge>{stageName(a.stage)}</Badge>
@@ -66,6 +69,24 @@ export default async function Person({ params }: PageProps<"/admin/hmuus/[id]">)
       </section>
 
       <section className="card mt-4 p-5">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="font-extrabold">Хэлний сургалт</h2>
+          <span className="jp text-sm font-bold text-red">
+            {LEVELS[u.level as LevelId]?.name} · {LEVELS[u.level as LevelId]?.jlpt}
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          <Progress value={lessons.length ? (done.length / lessons.length) * 100 : 0} />
+          <span className="shrink-0 text-xs font-bold text-muted">
+            {done.length}/{lessons.length}
+          </span>
+        </div>
+        <p className="mt-2 text-xs text-muted">Тестийн дундаж: {avg === null ? "—" : `${avg}%`}</p>
+      </section>
+      </div>
+
+      <div className="lg:order-1">
+      <section className="card mt-4 p-5 lg:mt-0">
         <h2 className="mb-3 font-extrabold">Анкет {!a.submittedAt && <span className="text-xs font-bold text-muted">· бөглөөгүй</span>}</h2>
         <dl className="grid grid-cols-1 gap-2 text-sm">
           {rows.map(([k, v]) => (
@@ -135,22 +156,6 @@ export default async function Person({ params }: PageProps<"/admin/hmuus/[id]">)
       </section>
 
       <section className="card mt-4 p-5">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-extrabold">Хэлний сургалт</h2>
-          <span className="jp text-sm font-bold text-red">
-            {LEVELS[u.level as LevelId]?.name} · {LEVELS[u.level as LevelId]?.jlpt}
-          </span>
-        </div>
-        <div className="flex items-center gap-3">
-          <Progress value={lessons.length ? (done.length / lessons.length) * 100 : 0} />
-          <span className="shrink-0 text-xs font-bold text-muted">
-            {done.length}/{lessons.length}
-          </span>
-        </div>
-        <p className="mt-2 text-xs text-muted">Тестийн дундаж: {avg === null ? "—" : `${avg}%`}</p>
-      </section>
-
-      <section className="card mt-4 p-5">
         <h2 className="mb-3 font-extrabold">Ажилтны тэмдэглэл</h2>
         <NoteForm userId={u.id} initial={a.staffNote ?? ""} />
       </section>
@@ -179,6 +184,8 @@ export default async function Person({ params }: PageProps<"/admin/hmuus/[id]">)
       <section className="mt-6">
         <DeletePerson userId={u.id} name={a.lastName && a.firstName ? `${a.lastName} ${a.firstName}` : u.name} />
       </section>
+      </div>
+      </div>
     </>
   );
 }

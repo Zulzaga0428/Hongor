@@ -30,7 +30,8 @@ export default async function Home() {
       <p className="jp text-sm font-bold text-red">{greeting()}、</p>
       <h1 className="text-2xl font-extrabold">{u.name.split(" ")[0]} 👋</h1>
 
-      <section className="mt-5 flex items-center gap-4 rounded-3xl bg-red p-5 text-white shadow-[0_8px_0_var(--red-deep)]">
+      <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
+      <section className="flex items-center gap-4 rounded-3xl bg-red p-5 text-white shadow-[0_8px_0_var(--red-deep)]">
         <Ring value={pct} label="ахиц" />
         <div className="min-w-0">
           <div className="jp text-xs font-bold opacity-90">
@@ -43,7 +44,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <Link href="/material" className="card mt-4 flex items-center gap-3 p-4">
+      <Link href="/material" className="card flex items-center gap-3 p-4">
         <span className="jp flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-pink font-extrabold text-red">履</span>
         <div className="min-w-0 flex-1">
           <div className="text-xs font-bold text-muted">Миний явц</div>
@@ -54,7 +55,9 @@ export default async function Home() {
         </div>
         {todo ? <span className="shrink-0 rounded-full bg-gold px-3 py-1.5 text-xs font-extrabold text-white">{todo}</span> : <span className="text-lg font-extrabold text-muted">›</span>}
       </Link>
+      </div>
 
+      <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-6">
       {next && (
         <section className="mt-7">
           <h2 className="mb-3 text-lg font-extrabold">{done === total ? "Давтах" : "Дараагийн хичээл"}</h2>
@@ -99,6 +102,7 @@ export default async function Home() {
           </ul>
         )}
       </section>
+      </div>
     </>
   );
 }

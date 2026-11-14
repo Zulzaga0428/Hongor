@@ -22,7 +22,7 @@ export default async function Lessons() {
         </span>
       </div>
 
-      <ol className="relative mt-6 grid grid-cols-1 gap-4">
+      <ol className="relative mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-4">
         {lessons.map((l, i) => {
           const p = prog.get(l.id);
           const perfect = p && p.score === p.total;

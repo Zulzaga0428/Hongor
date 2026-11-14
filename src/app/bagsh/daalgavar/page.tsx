@@ -21,7 +21,7 @@ export default async function TeacherAssignments() {
       </section>
 
       <h2 className="mb-3 mt-7 text-lg font-extrabold">Өгсөн даалгаврууд</h2>
-      <ul className="grid grid-cols-1 gap-3">
+      <ul className="grid grid-cols-1 gap-3 lg:grid-cols-2 lg:gap-4">
         {list.map((a) => (
           <li key={a.id} className="card p-4">
             <div className="flex items-start justify-between gap-3">

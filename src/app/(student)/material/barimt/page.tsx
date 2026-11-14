@@ -15,7 +15,7 @@ export default async function Barimt() {
       <h1 className="text-2xl font-extrabold">Бичиг баримт</h1>
       <p className="mb-5 mt-1 text-sm text-muted">Утсаараа зураг аваад хуулна. Бүх үсэг тод харагдаж байх ёстой.</p>
 
-      <ul className="grid grid-cols-1 gap-3">
+      <ul className="grid grid-cols-1 gap-3 lg:grid-cols-2 lg:gap-4">
         {DOC_KINDS.map((k) => {
           const mine = docs.filter((d) => d.kind === k.id);
           const top = mine[0];
