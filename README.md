@@ -20,7 +20,7 @@ SESSION_SECRET=... npm start
 |---|---|
 | `SESSION_SECRET` | ПРОД-д заавал |
 | `DATABASE_URL` | Postgres (заавал биш) |
-| `TEACHER_PHONE` / `TEACHER_PIN` / `TEACHER_NAME` | Эхний багшийн бүртгэл (анхдагч 88888888 / 1234 — ПРОД-д заавал соль) |
+| `TEACHER_PHONE` / `TEACHER_PIN` / `TEACHER_NAME` | Багшийн бүртгэл — сервер асах бүрд тааруулна. ПРОД-д байхгүй бол багш үүсэхгүй (локалд 88888888 / 1234) |
 | `SEED_DEMO` | `1` бол 3 жишээ сурагч нэмнэ (локалд анхдагч) |
 
 Хичээлийн агуулга: `src/content/lessons.ts`.

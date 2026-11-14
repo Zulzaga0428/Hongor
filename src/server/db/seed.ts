@@ -16,20 +16,52 @@ function pinHash(pin: string) {
   return `scrypt$${salt.toString("base64")}$${k.toString("base64")}`;
 }
 
-export async function seedIfEmpty(db: NodePgDatabase<typeof schema>) {
-  const existing = await db.select({ id: schema.users.id }).from(schema.users).where(eq(schema.users.role, "teacher")).limit(1);
-  if (existing.length) return;
+/**
+ * Багшийн бүртгэлийг Railway-гийн хувьсагчаас тааруулна — сервер асах бүрд.
+ * Тиймээс TEACHER_PHONE/PIN-ийг хожим оруулсан ч, сольсон ч хүчинтэй болно.
+ * ПРОД дээр хувьсагчгүй бол 88888888/1234 демо багшийг ХЭЗЭЭ Ч үүсгэхгүй.
+ */
+async function syncTeacher(db: NodePgDatabase<typeof schema>) {
+  const prod = process.env.NODE_ENV === "production";
+  const phone = process.env.TEACHER_PHONE?.trim() ?? (prod ? undefined : "88888888");
+  const pin = process.env.TEACHER_PIN?.trim() ?? (prod ? undefined : "1234");
+  if (!phone || !pin) {
+    console.warn("TEACHER_PHONE / TEACHER_PIN тохируулаагүй — багшийн бүртгэлийг өөрчлөхгүй.");
+    return;
+  }
+  if (!/^[0-9]{8}$/.test(phone) || !/^[0-9]{4}$/.test(pin)) {
+    console.error("TEACHER_PHONE 8 оронтой, TEACHER_PIN 4 оронтой тоо байх ёстой.");
+    return;
+  }
+  const name = process.env.TEACHER_NAME?.trim();
+  const [t] = await db.select().from(schema.users).where(eq(schema.users.role, "teacher")).limit(1);
+  try {
+    if (t) {
+      await db
+        .update(schema.users)
+        .set({ phone, pinHash: pinHash(pin), ...(name ? { name } : {}) })
+        .where(eq(schema.users.id, t.id));
+    } else {
+      await db.insert(schema.users).values({
+        id: randomUUID(),
+        name: name || "Япон хэлний багш",
+        phone,
+        pinHash: pinHash(pin),
+        role: "teacher",
+        level: "anhan",
+      });
+    }
+  } catch (e) {
+    // Жишээ нь тэр дугаараар сурагч бүртгүүлчихсэн бол.
+    console.error("Багшийн бүртгэлийг тааруулж чадсангүй:", (e as Error).message);
+  }
+}
 
-  const teacherPhone = process.env.TEACHER_PHONE ?? "88888888";
-  const teacherPin = process.env.TEACHER_PIN ?? "1234";
-  await db.insert(schema.users).values({
-    id: randomUUID(),
-    name: process.env.TEACHER_NAME ?? "Япон хэлний багш",
-    phone: teacherPhone,
-    pinHash: pinHash(teacherPin),
-    role: "teacher",
-    level: "anhan",
-  });
+export async function seedIfEmpty(db: NodePgDatabase<typeof schema>) {
+  await syncTeacher(db);
+
+  const existing = await db.select({ id: schema.assignments.id }).from(schema.assignments).limit(1);
+  if (existing.length) return;
 
   const week = (d: number) => new Date(Date.now() + d * 86400000);
   const asg = [
