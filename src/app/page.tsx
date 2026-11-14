@@ -1,124 +1,149 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { LEVELS, LEVEL_IDS } from "@/content/lessons";
+import { BRAND, COUNTRIES, COUNTRY_ORDER, STEPS } from "@/content/site";
 import { currentUser, homeFor } from "@/server/auth";
-import { Hinomaru } from "@/components/ui";
-
-const PETALS = [
-  { left: "8%", delay: "0s", dur: "9s" },
-  { left: "22%", delay: "3s", dur: "11s" },
-  { left: "41%", delay: "1.5s", dur: "10s" },
-  { left: "63%", delay: "5s", dur: "12s" },
-  { left: "78%", delay: "2s", dur: "9.5s" },
-  { left: "92%", delay: "6s", dur: "11.5s" },
-];
-
-const FEATURES = [
-  { icon: "学", title: "Хичээл, тест", text: "Хирагана, мэндчилгээнээс ярилцлагын бэлтгэл хүртэл. Дуудлагыг нь сонсоно." },
-  { icon: "書", title: "Багшийн даалгавар", text: "Даалгавраа илгээгээд багшийн оноо, зөвлөгөөг авна." },
-  { icon: "履", title: "Материалаа хянах", text: "Анкет, бичиг баримт, визийн явцаа өөрөө харна." },
-];
+import { CountryArt } from "@/components/site/country-art";
+import { HeroSlider } from "@/components/site/hero-slider";
+import { SiteFooter } from "@/components/site/site-footer";
+import { SiteHeader } from "@/components/site/site-header";
 
 export default async function Landing() {
   const u = await currentUser();
-  if (u) redirect(homeFor(u.role));
 
   return (
-    <div className="relative mx-auto min-h-dvh w-full max-w-md overflow-hidden px-5 pb-10 lg:max-w-6xl lg:px-10">
-      {PETALS.map((p, i) => (
-        <span key={i} className="petal" style={{ left: p.left, animationDelay: p.delay, animationDuration: p.dur }} />
-      ))}
+    <div className="bg-white text-ink">
+      <SiteHeader overHero home={u ? homeFor(u.role) : null} />
+      <HeroSlider />
 
-      <header className="flex items-center gap-2 pt-5 lg:pt-8">
-        <Hinomaru size={34}>日</Hinomaru>
-        <span className="text-sm font-extrabold lg:text-base">Хонгор Түрүү</span>
-        <span className="ml-auto text-xs font-bold text-muted lg:hidden">日本語クラス</span>
-        <nav className="ml-auto hidden items-center gap-3 lg:flex">
-          <Link href="/nevtreh" className="rounded-full px-5 py-2.5 font-bold text-ink hover:bg-pink">
-            Нэвтрэх
-          </Link>
-          <Link href="/burtgel" className="rounded-full bg-red px-5 py-2.5 font-extrabold text-white shadow-[0_4px_0_var(--red-deep)]">
-            Бүртгүүлэх
-          </Link>
-        </nav>
-      </header>
-
-      <div className="lg:grid lg:min-h-[78vh] lg:grid-cols-2 lg:items-center lg:gap-16">
-        <section className="pt-10 text-center lg:pt-0 lg:text-left">
-          <div className="mx-auto flex w-fit lg:hidden">
-            <Hinomaru size={128}>
-              <span className="jp whitespace-nowrap text-[34px] leading-none">日本語</span>
-            </Hinomaru>
-          </div>
-          <p className="jp hidden text-lg font-extrabold text-red lg:block">日本語クラス · Япон хэлний сургалт</p>
-          <h1 className="mt-8 text-[2rem] font-extrabold leading-tight lg:mt-3 lg:text-6xl lg:leading-[1.1]">
-            Япон хэлээ
-            <br />
-            <span className="text-red lg:hidden">утсаараа</span>
-            <span className="hidden text-red lg:inline">хаанаас ч</span> сур
-          </h1>
-          <p className="mx-auto mt-3 max-w-xs text-[15px] leading-relaxed text-muted lg:mx-0 lg:mt-6 lg:max-w-lg lg:text-lg">
-            Японд ажиллахаар бэлдэж буй сурагчдад зориулсан хичээл, даалгавар, тест. Багш тань шалгаад оноо өгнө.
-          </p>
-          <div className="mt-8 hidden max-w-lg grid-cols-[1.4fr_1fr] gap-3 lg:grid">
-            <Link href="/burtgel" className="btn btn-red whitespace-nowrap">
-              Бүртгүүлэх — үнэгүй
-            </Link>
-            <Link href="/nevtreh" className="btn btn-ghost">
-              Нэвтрэх
-            </Link>
-          </div>
-        </section>
-
-        <section className="relative mt-8 lg:mt-0">
-          <div className="absolute -right-6 -top-10 hidden lg:block" aria-hidden>
-            <Hinomaru size={150}>
-              <span className="jp whitespace-nowrap text-[40px] leading-none">日本語</span>
-            </Hinomaru>
-          </div>
-          <div className="relative grid grid-cols-1 gap-3 lg:gap-4 lg:pt-24">
-            {LEVEL_IDS.map((id, i) => (
-              <div key={id} className="card flex items-center gap-4 p-4 lg:p-6">
-                <div
-                  className={`jp flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-xl font-extrabold lg:h-16 lg:w-16 ${
-                    i === 0 ? "bg-pink text-red" : i === 1 ? "bg-[#fdf0dc] text-[#a86a12]" : "bg-red text-white"
-                  }`}
-                >
-                  {LEVELS[id].jp}
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-extrabold lg:text-lg">{LEVELS[id].name}</span>
-                    <span className="text-xs font-bold text-muted">{LEVELS[id].jlpt}</span>
+      {/* 3 улс — hero-гийн доод ирмэг дээр давхарлана */}
+      <section className="relative z-10 mx-auto -mt-28 max-w-6xl px-5 lg:-mt-36 lg:px-10">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:gap-6">
+          {COUNTRY_ORDER.map((s) => {
+            const c = COUNTRIES[s];
+            return (
+              <Link
+                key={s}
+                href={`/${s}`}
+                className="group overflow-hidden rounded-3xl bg-white shadow-[0_12px_40px_rgba(15,23,42,0.12)] transition hover:-translate-y-1 hover:shadow-[0_18px_50px_rgba(15,23,42,0.18)]"
+              >
+                <div className="relative h-32 lg:h-40">
+                  <CountryArt c={c} big={false} />
+                  <div className="absolute bottom-3 left-5 text-white">
+                    <div className="text-xs font-bold text-white/80">{c.hello}</div>
+                    <div className="text-2xl font-extrabold">{c.name}</div>
                   </div>
-                  <p className="text-sm text-muted">{LEVELS[id].desc}</p>
                 </div>
+                <div className="p-5">
+                  <p className="text-sm leading-relaxed text-muted">{c.cardText}</p>
+                  <div className="mt-4 text-sm font-extrabold" style={{ color: c.primary }}>
+                    Дэлгэрэнгүй <span className="inline-block transition group-hover:translate-x-1">→</span>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Бидний тухай */}
+      <section id="bidnii-tuhai" className="mx-auto max-w-6xl scroll-mt-24 px-5 py-20 lg:px-10 lg:py-28">
+        <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+          <div>
+            <p className="text-sm font-extrabold uppercase tracking-wider text-brand">Бидний тухай</p>
+            <h2 className="mt-3 text-3xl font-extrabold leading-tight lg:text-4xl">Хууль ёсны, найдвартай, нэг дор</h2>
+            <p className="mt-4 leading-relaxed text-muted">
+              {BRAND.name} нь гадаадад ажиллахыг хүссэн хүн бүрийг бүртгэл, хэлний сургалт, бичиг баримтаас эхлээд нислэг хүртэл дагалдана. Бид
+              энэ салбарт 20 гаруй жил ажилласан <b className="text-ink">{BRAND.partner}</b>-тэй хамтран ажилладаг.
+            </p>
+            <ul className="mt-6 grid gap-3">
+              {["Зөвхөн албан ёсны гэрээтэй хөтөлбөр", "Материалынхаа явцыг утсаараа хянана", "Хувийн мэдээллийг хуулийн дагуу хамгаална"].map((t) => (
+                <li key={t} className="flex items-start gap-3">
+                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-soft text-sm font-extrabold text-brand">✓</span>
+                  <span className="font-bold">{t}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            {[
+              { n: "20+", t: "жилийн туршлагатай түнш" },
+              { n: "3", t: "улс: Солонгос, Япон, Чех" },
+              { n: "1", t: "минутад онлайн бүртгэл" },
+              { n: "24/7", t: "явцаа хүссэн үедээ хянах" },
+            ].map((x, k) => (
+              <div key={x.t} className={`rounded-3xl p-6 ${k === 0 ? "bg-brand text-white" : "bg-bg"}`}>
+                <div className="text-4xl font-extrabold">{x.n}</div>
+                <div className={`mt-1 text-sm ${k === 0 ? "text-white/85" : "text-muted"}`}>{x.t}</div>
               </div>
             ))}
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
 
-      <section className="mt-6 hidden grid-cols-3 gap-4 pb-6 lg:grid">
-        {FEATURES.map((f) => (
-          <div key={f.title} className="card p-6">
-            <span className="jp flex h-12 w-12 items-center justify-center rounded-2xl bg-pink text-xl font-extrabold text-red">{f.icon}</span>
-            <h2 className="mt-4 text-lg font-extrabold">{f.title}</h2>
-            <p className="mt-1 text-sm leading-relaxed text-muted">{f.text}</p>
+      {/* Алхамууд */}
+      <section className="bg-bg py-20 lg:py-24">
+        <div className="mx-auto max-w-6xl px-5 lg:px-10">
+          <p className="text-sm font-extrabold uppercase tracking-wider text-brand">Хэрхэн явдаг вэ</p>
+          <h2 className="mt-3 text-3xl font-extrabold lg:text-4xl">5 алхамаар гадаадад</h2>
+          <ol className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            {STEPS.map((s, k) => (
+              <li key={s.title} className="rounded-3xl bg-white p-6">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-lg font-extrabold text-white">{k + 1}</div>
+                <h3 className="mt-4 font-extrabold">{s.title}</h3>
+                <p className="mt-1 text-sm leading-relaxed text-muted">{s.text}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* Хэлний сургалт */}
+      <section id="surgalt" className="mx-auto max-w-6xl scroll-mt-24 px-5 py-20 lg:px-10 lg:py-28">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="text-sm font-extrabold uppercase tracking-wider text-brand">Хэлний сургалт</p>
+            <h2 className="mt-3 text-3xl font-extrabold lg:text-4xl">Хэлээ онлайнаар сур</h2>
           </div>
-        ))}
+          <Link href="/burtgel" className="rounded-full bg-brand px-6 py-3 font-extrabold text-white">
+            Үнэгүй эхлэх
+          </Link>
+        </div>
+        <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
+          {COUNTRY_ORDER.map((s) => {
+            const c = COUNTRIES[s];
+            return (
+              <div key={s} className="overflow-hidden rounded-3xl border border-line">
+                <div className="relative flex h-40 items-end p-5">
+                  <CountryArt c={c} big={false} />
+                  <span className="relative rounded-full bg-white/90 px-3 py-1 text-xs font-extrabold" style={{ color: c.primary }}>
+                    {c.courseReady ? "Бэлэн" : "Удахгүй"}
+                  </span>
+                </div>
+                <div className="p-6">
+                  <h3 className="text-lg font-extrabold">{c.name} хэл</h3>
+                  <p className="mt-1 text-sm text-muted">
+                    {c.courseReady ? "Анхан, дунд, ахисан шат — хичээл, тест, багшийн даалгавар." : "Хичээлүүдийг бэлтгэж байна."}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </section>
 
-      <section className="sticky bottom-4 mt-8 grid gap-3 lg:hidden">
-        <Link href="/burtgel" className="btn btn-red">
-          Бүртгүүлэх — үнэгүй
-        </Link>
-        <Link href="/nevtreh" className="btn btn-ghost">
-          Нэвтрэх
-        </Link>
+      {/* Уриалга */}
+      <section className="px-5 pb-20 lg:px-10">
+        <div className="mx-auto flex max-w-6xl flex-col items-start gap-6 rounded-[2rem] bg-brand px-8 py-12 text-white lg:flex-row lg:items-center lg:justify-between lg:px-14">
+          <div>
+            <h2 className="text-2xl font-extrabold lg:text-3xl">Гадаадад ажиллах замаа өнөөдөр эхлүүл</h2>
+            <p className="mt-2 text-white/80">Бүртгэл үнэгүй. Утасны дугаар л хангалттай.</p>
+          </div>
+          <Link href="/burtgel" className="shrink-0 rounded-full bg-white px-7 py-3.5 font-extrabold text-brand">
+            Бүртгүүлэх
+          </Link>
+        </div>
       </section>
 
-      <p className="mt-8 text-center text-xs text-muted">がんばって！ · Амжилт хүсье!</p>
+      <SiteFooter />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { M_PLUS_Rounded_1c } from "next/font/google";
+import { BRAND } from "@/content/site";
 import "./globals.css";
 
 const round = M_PLUS_Rounded_1c({
@@ -11,14 +12,14 @@ const round = M_PLUS_Rounded_1c({
 });
 
 export const metadata: Metadata = {
-  title: "Япон хэл — Хонгор Түрүү",
-  description: "Японд ажиллахаар бэлдэж буй сурагчдын япон хэлний сургалт: анхан, дунд, ахисан шат.",
+  title: `${BRAND.name} — ${BRAND.tagline}`,
+  description: "Солонгос, Япон, Чехэд албан ёсоор ажиллах: бүртгэл, хэлний сургалт, бичиг баримт — нэг дор.",
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#d7263d",
+  themeColor: "#0f8a7e",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
