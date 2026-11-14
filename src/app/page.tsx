@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { LEVELS, LEVEL_IDS } from "@/content/lessons";
-import { currentUser } from "@/server/auth";
+import { currentUser, homeFor } from "@/server/auth";
 import { Hinomaru } from "@/components/ui";
 
 const PETALS = [
@@ -15,7 +15,7 @@ const PETALS = [
 
 export default async function Landing() {
   const u = await currentUser();
-  if (u) redirect(u.role === "teacher" ? "/bagsh" : "/home");
+  if (u) redirect(homeFor(u.role));
 
   return (
     <div className="relative mx-auto min-h-dvh w-full max-w-md overflow-hidden px-5 pb-10">

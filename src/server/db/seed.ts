@@ -1,5 +1,4 @@
-import "server-only";
-import { randomUUID, scryptSync, randomBytes } from "node:crypto";
+import { randomUUID, randomBytes, scrypt, timingSafeEqual } from "node:crypto";
 import { eq } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import * as schema from "./schema";
@@ -10,55 +9,70 @@ import * as schema from "./schema";
  * харагдахгүйн тулд. Жинхэнэ хэрэглээнд SEED_DEMO-г унтраана.
  */
 
-function pinHash(pin: string) {
+// Async scrypt — нэг hash ~300мс; sync хувилбар серверийг бүхэлд нь түр зогсоодог.
+function derive(pin: string, salt: Buffer): Promise<Buffer> {
+  return new Promise((res, rej) => scrypt(pin, salt, 32, { N: 16384, r: 8, p: 1 }, (e, k) => (e ? rej(e) : res(k))));
+}
+
+async function pinHash(pin: string) {
   const salt = randomBytes(16);
-  const k = scryptSync(pin, salt, 32, { N: 16384, r: 8, p: 1 });
+  const k = await derive(pin, salt);
   return `scrypt$${salt.toString("base64")}$${k.toString("base64")}`;
 }
 
+async function pinMatches(pin: string, stored: string) {
+  const [alg, s, h] = stored.split("$");
+  if (alg !== "scrypt" || !s || !h) return false;
+  const want = Buffer.from(h, "base64");
+  const got = await derive(pin, Buffer.from(s, "base64"));
+  return got.length === want.length && timingSafeEqual(got, want);
+}
+
 /**
- * Багшийн бүртгэлийг Railway-гийн хувьсагчаас тааруулна — сервер асах бүрд.
- * Тиймээс TEACHER_PHONE/PIN-ийг хожим оруулсан ч, сольсон ч хүчинтэй болно.
- * ПРОД дээр хувьсагчгүй бол 88888888/1234 демо багшийг ХЭЗЭЭ Ч үүсгэхгүй.
+ * Ажилтны (багш, админ) бүртгэлийг Railway-гийн хувьсагчаас тааруулна —
+ * сервер асах бүрд. Тиймээс *_PHONE/*_PIN-ийг хожим оруулсан ч, сольсон ч
+ * хүчинтэй болно. ПРОД дээр хувьсагчгүй бол демо (1234) бүртгэл ХЭЗЭЭ Ч үүсэхгүй.
  */
-async function syncTeacher(db: NodePgDatabase<typeof schema>) {
+async function syncStaff(
+  db: NodePgDatabase<typeof schema>,
+  role: "teacher" | "admin",
+  prefix: "TEACHER" | "ADMIN",
+  dev: { phone: string; name: string },
+) {
   const prod = process.env.NODE_ENV === "production";
-  const phone = process.env.TEACHER_PHONE?.trim() ?? (prod ? undefined : "88888888");
-  const pin = process.env.TEACHER_PIN?.trim() ?? (prod ? undefined : "1234");
+  const phone = process.env[`${prefix}_PHONE`]?.trim() ?? (prod ? undefined : dev.phone);
+  const pin = process.env[`${prefix}_PIN`]?.trim() ?? (prod ? undefined : "1234");
   if (!phone || !pin) {
-    console.warn("TEACHER_PHONE / TEACHER_PIN тохируулаагүй — багшийн бүртгэлийг өөрчлөхгүй.");
+    console.warn(`${prefix}_PHONE / ${prefix}_PIN тохируулаагүй — ${role} бүртгэлийг өөрчлөхгүй.`);
     return;
   }
   if (!/^[0-9]{8}$/.test(phone) || !/^[0-9]{4}$/.test(pin)) {
-    console.error("TEACHER_PHONE 8 оронтой, TEACHER_PIN 4 оронтой тоо байх ёстой.");
+    console.error(`${prefix}_PHONE 8 оронтой, ${prefix}_PIN 4 оронтой тоо байх ёстой.`);
     return;
   }
-  const name = process.env.TEACHER_NAME?.trim();
-  const [t] = await db.select().from(schema.users).where(eq(schema.users.role, "teacher")).limit(1);
+  const name = process.env[`${prefix}_NAME`]?.trim();
+  const [t] = await db.select().from(schema.users).where(eq(schema.users.role, role)).limit(1);
   try {
     if (t) {
+      // Өөрчлөгдсөн үед л бичнэ — асах бүрд дахин hash хийхгүй.
+      const samePin = await pinMatches(pin, t.pinHash);
+      if (t.phone === phone && samePin && (!name || t.name === name)) return;
       await db
         .update(schema.users)
-        .set({ phone, pinHash: pinHash(pin), ...(name ? { name } : {}) })
+        .set({ phone, ...(samePin ? {} : { pinHash: await pinHash(pin) }), ...(name ? { name } : {}) })
         .where(eq(schema.users.id, t.id));
     } else {
-      await db.insert(schema.users).values({
-        id: randomUUID(),
-        name: name || "Япон хэлний багш",
-        phone,
-        pinHash: pinHash(pin),
-        role: "teacher",
-        level: "anhan",
-      });
+      await db.insert(schema.users).values({ id: randomUUID(), name: name || dev.name, phone, pinHash: await pinHash(pin), role, level: "anhan" });
     }
   } catch (e) {
     // Жишээ нь тэр дугаараар сурагч бүртгүүлчихсэн бол.
-    console.error("Багшийн бүртгэлийг тааруулж чадсангүй:", (e as Error).message);
+    console.error(`${role} бүртгэлийг тааруулж чадсангүй:`, (e as Error).message);
   }
 }
 
 export async function seedIfEmpty(db: NodePgDatabase<typeof schema>) {
-  await syncTeacher(db);
+  await syncStaff(db, "teacher", "TEACHER", { phone: "88888888", name: "Япон хэлний багш" });
+  await syncStaff(db, "admin", "ADMIN", { phone: "99999999", name: "Удирдлага" });
 
   const existing = await db.select({ id: schema.assignments.id }).from(schema.assignments).limit(1);
   if (existing.length) return;
@@ -82,13 +96,31 @@ export async function seedIfEmpty(db: NodePgDatabase<typeof schema>) {
   if (demo !== "1") return;
 
   const students = [
-    { name: "Тэмүүлэн (жишээ)", phone: "90000001", level: "anhan", done: [["anhan-1", 5, 5], ["anhan-2", 4, 5], ["anhan-3", 4, 4]] },
-    { name: "Анужин (жишээ)", phone: "90000002", level: "anhan", done: [["anhan-1", 3, 5]] },
-    { name: "Билгүүн (жишээ)", phone: "90000003", level: "dund", done: [["dund-1", 4, 4], ["dund-2", 3, 4]] },
+    { name: "Тэмүүлэн (жишээ)", phone: "90000001", level: "anhan", stage: "training", country: "japan", job: "Барилга", done: [["anhan-1", 5, 5], ["anhan-2", 4, 5], ["anhan-3", 4, 4]] },
+    { name: "Анужин (жишээ)", phone: "90000002", level: "anhan", stage: "registered", country: "japan", job: "Асаргаа", done: [["anhan-1", 3, 5]] },
+    { name: "Билгүүн (жишээ)", phone: "90000003", level: "dund", stage: "interview", country: "japan", job: "Хөдөө аж ахуй", done: [["dund-1", 4, 4], ["dund-2", 3, 4]] },
+    { name: "Номин (жишээ)", phone: "90000004", level: "ahisan", stage: "visa", country: "japan", job: "Хүнсний үйлдвэр", done: [["ahisan-1", 4, 4]] },
+    { name: "Ганбат (жишээ)", phone: "90000005", level: "anhan", stage: "training", country: "korea", job: "Үйлдвэр", done: [] },
   ] as const;
   for (const s of students) {
     const id = randomUUID();
-    await db.insert(schema.users).values({ id, name: s.name, phone: s.phone, pinHash: pinHash("1111"), role: "student", level: s.level });
+    await db.insert(schema.users).values({ id, name: s.name, phone: s.phone, pinHash: await pinHash("1111"), role: "student", level: s.level });
+    const [last, first] = s.name.replace(" (жишээ)", "").split(" ");
+    await db.insert(schema.applicants).values({
+      userId: id,
+      country: s.country,
+      program: s.country === "japan" ? "Тусгай ур чадвар (特定技能)" : "EPS — хөдөлмөр эрхлэлтийн хөтөлбөр",
+      jobType: s.job,
+      lastName: "Жишээ",
+      firstName: first ?? last,
+      birthDate: "2001-05-12",
+      gender: "Эрэгтэй",
+      education: "Бүрэн дунд",
+      consentAt: new Date(),
+      submittedAt: s.stage === "registered" ? null : new Date(),
+      stage: s.stage,
+    });
+    await db.insert(schema.stageEvents).values({ id: randomUUID(), userId: id, stage: s.stage, note: "Жишээ өгөгдөл", byName: "Систем" });
     for (const [lessonId, score, total] of s.done) {
       await db.insert(schema.lessonProgress).values({ userId: id, lessonId, score, total });
     }

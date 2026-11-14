@@ -3,6 +3,6 @@ import { Page } from "@/components/ui";
 import { requireTeacher } from "@/server/auth";
 
 export default async function TeacherLayout({ children }: { children: React.ReactNode }) {
-  await requireTeacher();
-  return <Page nav={<BottomNav teacher />}>{children}</Page>;
+  const u = await requireTeacher();
+  return <Page nav={<BottomNav role={u.role === "admin" ? "admin" : "teacher"} />}>{children}</Page>;
 }

@@ -102,16 +102,29 @@ export async function currentUser(): Promise<User | null> {
   }
 }
 
+/** Дүр бүрийн нүүр хуудас. */
+export function homeFor(role: string): string {
+  return role === "admin" ? "/admin" : role === "teacher" ? "/bagsh" : "/home";
+}
+
 export async function requireStudent(): Promise<User> {
   const u = await currentUser();
   if (!u) redirect("/nevtreh");
-  if (u.role === "teacher") redirect("/bagsh");
+  if (u.role !== "student") redirect(homeFor(u.role));
   return u;
 }
 
+/** Багш болон админ (админ хичээлийн хэсгийг ч удирдана). */
 export async function requireTeacher(): Promise<User> {
   const u = await currentUser();
   if (!u) redirect("/nevtreh");
-  if (u.role !== "teacher") redirect("/home");
+  if (u.role !== "teacher" && u.role !== "admin") redirect(homeFor(u.role));
+  return u;
+}
+
+export async function requireAdmin(): Promise<User> {
+  const u = await currentUser();
+  if (!u) redirect("/nevtreh");
+  if (u.role !== "admin") redirect(homeFor(u.role));
   return u;
 }

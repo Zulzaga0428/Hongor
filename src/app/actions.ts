@@ -10,6 +10,7 @@ import {
   createSession,
   currentUser,
   destroySession,
+  homeFor,
   hashPin,
   lockedFor,
   recordFail,
@@ -46,6 +47,8 @@ export async function signup(_: FormState, fd: FormData): Promise<FormState> {
 
   const id = randomUUID();
   await db.insert(schema.users).values({ id, name: name.slice(0, 60), phone, pinHash: await hashPin(pin), level });
+  await db.insert(schema.applicants).values({ userId: id }).onConflictDoNothing();
+  await db.insert(schema.stageEvents).values({ id: randomUUID(), userId: id, stage: "registered", byName: "Систем" });
   await createSession(id);
   redirect("/home");
 }
@@ -66,7 +69,7 @@ export async function login(_: FormState, fd: FormData): Promise<FormState> {
   }
   clearFails(phone);
   await createSession(u.id);
-  redirect(u.role === "teacher" ? "/bagsh" : "/home");
+  redirect(homeFor(u.role));
 }
 
 export async function logout() {

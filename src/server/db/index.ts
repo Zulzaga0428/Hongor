@@ -1,4 +1,4 @@
-import "server-only";
+// "server-only"-г импортлохгүй: instrumentation.ts (react-server нөхцөлгүй) энийг ачаална.
 import { mkdirSync } from "node:fs";
 import path from "node:path";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
@@ -50,6 +50,52 @@ CREATE TABLE IF NOT EXISTS submissions (
   graded_at timestamptz,
   UNIQUE (assignment_id, user_id)
 );
+CREATE TABLE IF NOT EXISTS applicants (
+  user_id text PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  country text,
+  program text,
+  job_type text,
+  last_name text,
+  first_name text,
+  birth_date text,
+  gender text,
+  address text,
+  education text,
+  experience text,
+  height_cm integer,
+  weight_kg integer,
+  emergency_name text,
+  emergency_phone text,
+  consent_at timestamptz,
+  submitted_at timestamptz,
+  stage text NOT NULL DEFAULT 'registered',
+  stage_at timestamptz NOT NULL DEFAULT now(),
+  staff_note text,
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS applicants_stage_idx ON applicants (stage);
+CREATE TABLE IF NOT EXISTS documents (
+  id text PRIMARY KEY,
+  user_id text NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  kind text NOT NULL,
+  filename text NOT NULL,
+  mime text NOT NULL,
+  size integer NOT NULL,
+  data bytea NOT NULL,
+  status text NOT NULL DEFAULT 'pending',
+  note text,
+  uploaded_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS documents_user_idx ON documents (user_id);
+CREATE TABLE IF NOT EXISTS stage_events (
+  id text PRIMARY KEY,
+  user_id text NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  stage text NOT NULL,
+  note text,
+  by_name text,
+  at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS stage_events_user_idx ON stage_events (user_id, at);
 `;
 
 async function open(): Promise<Db> {

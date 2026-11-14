@@ -1,4 +1,4 @@
-import { integer, pgTable, primaryKey, text, timestamp, unique } from "drizzle-orm/pg-core";
+import { customType, integer, pgTable, primaryKey, text, timestamp, unique } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
@@ -50,3 +50,60 @@ export const submissions = pgTable(
 );
 
 export type User = typeof users.$inferSelect;
+
+// ---------------- Горилогчийн материал ----------------
+
+const bytea = customType<{ data: Uint8Array; driverData: Uint8Array }>({
+  dataType: () => "bytea",
+});
+
+/** Сурагч бүрт нэг анкет. Хэлний сургалт ба явуулах ажил хоёрыг нэг хүнд холбоно. */
+export const applicants = pgTable("applicants", {
+  userId: text("user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
+  country: text("country"),
+  program: text("program"),
+  jobType: text("job_type"),
+  lastName: text("last_name"),
+  firstName: text("first_name"),
+  birthDate: text("birth_date"),
+  gender: text("gender"),
+  address: text("address"),
+  education: text("education"),
+  experience: text("experience"),
+  heightCm: integer("height_cm"),
+  weightKg: integer("weight_kg"),
+  emergencyName: text("emergency_name"),
+  emergencyPhone: text("emergency_phone"),
+  consentAt: timestamp("consent_at", { withTimezone: true }),
+  submittedAt: timestamp("submitted_at", { withTimezone: true }),
+  stage: text("stage").notNull().default("registered"),
+  stageAt: timestamp("stage_at", { withTimezone: true }).notNull().defaultNow(),
+  /** Зөвхөн ажилтнуудад харагдана. */
+  staffNote: text("staff_note"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const documents = pgTable("documents", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  kind: text("kind").notNull(),
+  filename: text("filename").notNull(),
+  mime: text("mime").notNull(),
+  size: integer("size").notNull(),
+  data: bytea("data").notNull(),
+  /** pending | ok | rejected */
+  status: text("status").notNull().default("pending"),
+  note: text("note"),
+  uploadedAt: timestamp("uploaded_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const stageEvents = pgTable("stage_events", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  stage: text("stage").notNull(),
+  note: text("note"),
+  byName: text("by_name"),
+  at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export type Applicant = typeof applicants.$inferSelect;

@@ -2,6 +2,9 @@ import Link from "next/link";
 import { LEVELS, type LevelId } from "@/content/lessons";
 import { requireStudent } from "@/server/auth";
 import { assignmentsFor, levelStats } from "@/server/queries";
+import { anketMissing, docsOf, docsProgress, getApplicant } from "@/server/applicant";
+import { stageName } from "@/content/programs";
+import { StageDots } from "@/components/stepper";
 import { Badge, formatDate, Ring } from "@/components/ui";
 
 function greeting() {
@@ -18,6 +21,9 @@ export default async function Home() {
   const { lessons, prog, done, total, pct } = await levelStats(u);
   const next = lessons.find((l) => !prog.has(l.id)) ?? lessons[0];
   const asg = (await assignmentsFor(u)).filter((a) => !a.submission);
+  const app = await getApplicant(u.id);
+  const dp = docsProgress(await docsOf(u.id));
+  const todo = !app.submittedAt ? "Анкетаа бөглөөрэй" : anketMissing(app) ? "Анкет дутуу байна" : dp.rejected ? "Баримтаа дахин илгээ" : dp.have < dp.need ? `Баримт хуулах (${dp.have}/${dp.need})` : null;
 
   return (
     <>
@@ -36,6 +42,18 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      <Link href="/material" className="card mt-4 flex items-center gap-3 p-4">
+        <span className="jp flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-pink font-extrabold text-red">履</span>
+        <div className="min-w-0 flex-1">
+          <div className="text-xs font-bold text-muted">Миний явц</div>
+          <div className="truncate font-extrabold">{stageName(app.stage)}</div>
+          <div className="mt-1.5">
+            <StageDots stage={app.stage} />
+          </div>
+        </div>
+        {todo ? <span className="shrink-0 rounded-full bg-gold px-3 py-1.5 text-xs font-extrabold text-white">{todo}</span> : <span className="text-lg font-extrabold text-muted">›</span>}
+      </Link>
 
       {next && (
         <section className="mt-7">
