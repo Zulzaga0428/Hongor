@@ -111,6 +111,34 @@ export async function pendingDocCount(orgId: string | null = null) {
   return r?.n ?? 0;
 }
 
+/**
+ * Сүүлийн үйл ажиллагаа. Байгууллагад: зөвхөн ӨӨРИЙН ажилтнуудын хийсэн, одоо ч
+ * өөрт нь оноогдсон хүмүүсийн мөрүүд (өмнөх байгууллагын түүх орохгүй).
+ */
+export async function recentActivity(orgId: string | null, limit = 8) {
+  const db = await getDb();
+  const cols = {
+    id: schema.stageEvents.id,
+    stage: schema.stageEvents.stage,
+    note: schema.stageEvents.note,
+    byName: schema.stageEvents.byName,
+    at: schema.stageEvents.at,
+    userId: schema.users.id,
+    name: schema.users.name,
+    lastName: schema.applicants.lastName,
+    firstName: schema.applicants.firstName,
+  };
+  const q = db
+    .select(cols)
+    .from(schema.stageEvents)
+    .innerJoin(schema.users, eq(schema.users.id, schema.stageEvents.userId))
+    .leftJoin(schema.applicants, eq(schema.applicants.userId, schema.stageEvents.userId));
+  const rows = orgId
+    ? await q.where(and(eq(schema.stageEvents.orgId, orgId), eq(schema.applicants.orgId, orgId))).orderBy(desc(schema.stageEvents.at)).limit(limit)
+    : await q.orderBy(desc(schema.stageEvents.at)).limit(limit);
+  return rows;
+}
+
 export async function listOrgs() {
   const db = await getDb();
   return db.select().from(schema.organizations).orderBy(schema.organizations.createdAt);

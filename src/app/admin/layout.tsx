@@ -1,8 +1,7 @@
-import { BottomNav } from "@/components/bottom-nav";
-import { Page } from "@/components/ui";
 import { requireAdmin } from "@/server/auth";
+import { StaffShell } from "@/components/staff/shell";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  await requireAdmin();
-  return <Page nav={<BottomNav role="admin" />}>{children}</Page>;
+  const u = await requireAdmin();
+  return <StaffShell staff={{ user: u, org: null, base: "/admin" }}>{children}</StaffShell>;
 }

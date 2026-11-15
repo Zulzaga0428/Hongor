@@ -1,9 +1,8 @@
-import { BottomNav } from "@/components/bottom-nav";
-import { Page } from "@/components/ui";
 import { requireStaff } from "@/server/auth";
+import { StaffShell } from "@/components/staff/shell";
 
-/** Хамтрагч байгууллагын самбар — зөвхөн role=org. */
+/** Хамтрагч байгууллагын самбар. */
 export default async function OrgLayout({ children }: { children: React.ReactNode }) {
   const s = await requireStaff();
-  return <Page nav={<BottomNav role={s.org ? "org" : "admin"} />}>{children}</Page>;
+  return <StaffShell staff={s}>{children}</StaffShell>;
 }
