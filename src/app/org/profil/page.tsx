@@ -1,6 +1,7 @@
 import { logout } from "@/app/actions";
 import { requireStaff } from "@/server/auth";
 import { Hinomaru } from "@/components/ui";
+import { InstallApp } from "@/components/pwa";
 
 export default async function OrgProfile() {
   const s = await requireStaff();
@@ -22,6 +23,9 @@ export default async function OrgProfile() {
       <a href="/api/export" className="card mt-3 block p-4 font-bold">
         ⬇ Манай хүмүүсийг Excel-ээр татах
       </a>
+      <div className="mt-7">
+        <InstallApp />
+      </div>
       <form action={logout} className="mt-8">
         <button className="btn btn-ghost">Гарах</button>
       </form>

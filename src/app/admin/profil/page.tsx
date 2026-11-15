@@ -2,6 +2,7 @@ import Link from "next/link";
 import { logout } from "@/app/actions";
 import { requireAdmin } from "@/server/auth";
 import { Hinomaru } from "@/components/ui";
+import { InstallApp } from "@/components/pwa";
 
 export default async function AdminProfile() {
   const me = await requireAdmin();
@@ -25,6 +26,9 @@ export default async function AdminProfile() {
           ⬇ Бүх хүнийг Excel-ээр татах
         </a>
       </section>
+      <div className="mt-7">
+        <InstallApp />
+      </div>
       <form action={logout} className="mt-8">
         <button className="btn btn-ghost">Гарах</button>
       </form>

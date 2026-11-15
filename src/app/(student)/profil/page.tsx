@@ -2,6 +2,7 @@ import { changeLevel, logout } from "@/app/actions";
 import { LEVELS, LEVEL_IDS } from "@/content/lessons";
 import { requireStudent } from "@/server/auth";
 import { Hinomaru } from "@/components/ui";
+import { InstallApp } from "@/components/pwa";
 
 export default async function Profile() {
   const u = await requireStudent();
@@ -42,6 +43,9 @@ export default async function Profile() {
         </div>
       </section>
 
+      <div className="mt-7">
+        <InstallApp />
+      </div>
       <form action={logout} className="mt-8">
         <button className="btn btn-ghost">Гарах</button>
       </form>

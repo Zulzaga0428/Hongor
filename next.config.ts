@@ -13,7 +13,11 @@ const nextConfig: NextConfig = {
   // PGlite нь WASM файлуудаа node_modules-оос уншдаг — багцлахгүй.
   serverExternalPackages: ["@electric-sql/pglite"],
   async headers() {
-    return [{ source: "/:path*", headers: SECURITY_HEADERS }];
+    return [
+      { source: "/:path*", headers: SECURITY_HEADERS },
+      // Service worker шинэчлэгдмэгц утсанд хүрэх ёстой — хөтөч кэшлэхгүй.
+      { source: "/sw.js", headers: [{ key: "Cache-Control", value: "no-cache, no-store, must-revalidate" }] },
+    ];
   },
   turbopack: {
     // Гэрийн хавтас (C:\Users\User) өөрөө git repo тул үндсийг ил заана.

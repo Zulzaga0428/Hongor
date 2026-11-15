@@ -8,6 +8,7 @@ import { COUNTRIES, PAUSED, STAGES, isCountry, stageName } from "@/content/progr
 import { formatDate } from "@/components/ui";
 import { Panel } from "@/components/staff/panel";
 import { StageTrack } from "@/components/staff/stage-track";
+import { InstallApp } from "@/components/pwa";
 
 function greeting() {
   const h = Number(new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Ulaanbaatar", hour: "numeric", hour12: false }).format(new Date()));
@@ -62,6 +63,7 @@ export default async function Home() {
 
   return (
     <>
+      <InstallApp variant="banner" />
       <div>
         <h1 className="text-2xl font-bold lg:text-[28px]">
           {greeting()}, {first} 👋
