@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { COUNTRIES, EDUCATION, JOB_TYPES, isCountry, isStage, stageName } from "@/content/programs";
 import { getApplicant } from "@/server/applicant";
-import { canSee, hashPin, requireAdmin, requireStaff, requireStudent, type Staff } from "@/server/auth";
+import { canSee, clearFails, hashPin, requireAdmin, requireStaff, requireStudent, type Staff } from "@/server/auth";
 import { getDb, schema } from "@/server/db";
 import type { FormState } from "@/app/actions";
 
@@ -171,6 +171,49 @@ export async function saveStaffNote(_: FormState, fd: FormData): Promise<FormSta
   await ctx.db.update(schema.applicants).set({ staffNote: note || null }).where(eq(schema.applicants.userId, userId));
   revalidatePath(`${ctx.staff.base}/hmuus/${userId}`);
   return { ok: "Тэмдэглэл хадгалагдлаа." };
+}
+
+export type ResetPinState = (FormState & { pin?: string }) | undefined;
+
+/**
+ * Нууц кодоо мартсан хүнд шинэ 4 оронтой код. Систем үүсгээд НЭГ УДАА харуулна.
+ * Сурагч: хариуцсан байгууллага эсвэл платформын эзэн (canSee). Байгууллагын
+ * ажилтан: зөвхөн платформын эзэн. Түгжээг (буруу оролдлого) мөн тайлна.
+ */
+export async function resetPin(_: ResetPinState, fd: FormData): Promise<ResetPinState> {
+  const userId = clean(fd.get("userId"));
+  const db = await getDb();
+  const [u] = await db.select({ role: schema.users.role, phone: schema.users.phone }).from(schema.users).where(eq(schema.users.id, userId)).limit(1);
+  if (!u) return { error: "Хүн олдсонгүй." };
+
+  let staff: Staff | null = null;
+  if (u.role === "student") {
+    const ctx = await staffFor(userId);
+    if (!ctx) return { error: "Энэ хүн дээр ажиллах эрхгүй." };
+    staff = ctx.staff;
+  } else if (u.role === "org") {
+    await requireAdmin();
+  } else {
+    return { error: "Энэ бүртгэлийн кодыг эндээс солих боломжгүй." };
+  }
+
+  const pin = String(randomInt(0, 10000)).padStart(4, "0");
+  await db.update(schema.users).set({ pinHash: await hashPin(pin) }).where(eq(schema.users.id, userId));
+  clearFails(u.phone);
+  if (staff) {
+    const a = await getApplicant(userId);
+    await db.insert(schema.stageEvents).values({
+      id: randomUUID(),
+      userId,
+      stage: a.stage,
+      note: "Нэвтрэх код шинэчлэв",
+      byName: byLabel(staff),
+      orgId: staff.org?.id ?? null,
+      at: new Date(),
+    });
+    revalidatePath(`${staff.base}/hmuus/${userId}`);
+  }
+  return { ok: "Шинэ код үүслээ.", pin };
 }
 
 export type CreatePersonState = (FormState & { pin?: string; id?: string; name?: string; phone?: string }) | undefined;

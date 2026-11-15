@@ -10,7 +10,7 @@ import { canSee, type Staff } from "@/server/auth";
 import { getDb, schema } from "@/server/db";
 import { progressOf } from "@/server/queries";
 import { formatDate } from "@/components/ui";
-import { AssignOrgForm, DeletePerson, NoteForm, StageForm } from "@/components/admin-forms";
+import { AssignOrgForm, DeletePerson, NoteForm, ResetPin, StageForm } from "@/components/admin-forms";
 import { Panel } from "./panel";
 import { StageTrack } from "./stage-track";
 
@@ -105,10 +105,11 @@ export async function StaffPerson({ staff, id }: { staff: Staff; id: string }) {
               {isOwner && (myOrg ? <Tag tone="gray">{myOrg.name}</Tag> : <Tag tone="red">Оноогоогүй</Tag>)}
             </div>
           </div>
-          <div className="flex gap-2 sm:flex-col lg:flex-row">
+          <div className="flex flex-wrap items-start gap-2 sm:flex-col sm:items-end">
             <a href={`tel:${u.phone}`} className="flex items-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-bold text-white">
               <Phone className="h-4 w-4" /> {u.phone}
             </a>
+            <ResetPin userId={u.id} phone={u.phone} />
           </div>
         </div>
         <div className="mt-5 border-t border-line pt-4">

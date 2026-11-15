@@ -6,7 +6,7 @@ import { listApplicants, listOrgs } from "@/server/applicant";
 import { requireAdmin } from "@/server/auth";
 import { getDb, schema } from "@/server/db";
 import { Badge } from "@/components/ui";
-import { CreateOrgForm, CreateStaffForm } from "@/components/admin-forms";
+import { CreateOrgForm, CreateStaffForm, ResetPin } from "@/components/admin-forms";
 
 export default async function Orgs() {
   await requireAdmin();
@@ -62,10 +62,13 @@ export default async function Orgs() {
                         <span>
                           <b>{s.name}</b> <span className="text-muted">{s.phone}</span>
                         </span>
-                        <form action={removeOrgStaff}>
-                          <input type="hidden" name="id" value={s.id} />
-                          <button className="text-xs font-bold text-muted underline">Эрх хаах</button>
-                        </form>
+                        <span className="flex flex-wrap items-center justify-end gap-3">
+                          <ResetPin userId={s.id} phone={s.phone} compact />
+                          <form action={removeOrgStaff}>
+                            <input type="hidden" name="id" value={s.id} />
+                            <button className="text-xs font-bold text-muted underline">Эрх хаах</button>
+                          </form>
+                        </span>
                       </li>
                     ))}
                   </ul>

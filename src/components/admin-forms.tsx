@@ -1,7 +1,7 @@
 "use client";
 
 import { startTransition, useActionState, useState } from "react";
-import { assignOrg, createOrg, createOrgStaff, deletePerson, saveStaffNote, setStage } from "@/app/material-actions";
+import { assignOrg, createOrg, createOrgStaff, deletePerson, resetPin, saveStaffNote, setStage } from "@/app/material-actions";
 import type { FormState } from "@/app/actions";
 
 /** Action дууссаны дараа формыг reset хийлгэхгүй (React 19) — select буцахаас сэргийлнэ. */
@@ -37,6 +37,49 @@ export function AssignOrgForm({ userId, current, orgs, disabled }: { userId: str
       <button className="rounded-2xl bg-brand py-3 font-extrabold text-white disabled:opacity-50" disabled={pending || disabled || orgId === current}>
         {pending ? "…" : orgId ? "Оноох" : "Буцааж авах"}
       </button>
+    </form>
+  );
+}
+
+/**
+ * «Нэвтрэх код шинэчлэх» — эхлээд батлуулна, дараа нь шинэ кодыг НЭГ УДАА
+ * том үсгээр харуулна (ажилтан утсаар хэлж өгнө). compact = жагсаалтын мөрөнд.
+ */
+export function ResetPin({ userId, phone, compact = false }: { userId: string; phone: string; compact?: boolean }) {
+  const [state, action, pending] = useActionState(resetPin, undefined);
+  const [ask, setAsk] = useState(false);
+
+  if (state?.pin)
+    return (
+      <div className={`rounded-lg border border-brand/40 bg-brand-soft ${compact ? "px-2.5 py-1.5" : "px-4 py-3"}`} data-testid="reset-pin-result">
+        <div className="text-[11px] font-bold text-brand">Шинэ код ({phone})</div>
+        <div className={`font-extrabold tracking-[0.3em] text-brand ${compact ? "text-lg" : "text-2xl"}`}>{state.pin}</div>
+        {!compact && <div className="text-[11px] text-muted">Энэ кодыг тухайн хүнд хэлж өгнө үү. Дахин харагдахгүй.</div>}
+      </div>
+    );
+
+  if (!ask)
+    return (
+      <button
+        type="button"
+        onClick={() => setAsk(true)}
+        className={compact ? "text-xs font-bold text-muted underline" : "flex items-center gap-2 rounded-lg border border-line bg-white px-4 py-2.5 text-sm font-bold hover:border-brand"}
+      >
+        {compact ? "Код шинэчлэх" : "🔑 Нэвтрэх код шинэчлэх"}
+      </button>
+    );
+
+  return (
+    <form onSubmit={submitKeep(action)} className="flex flex-wrap items-center gap-2">
+      <input type="hidden" name="userId" value={userId} />
+      <span className="text-xs text-muted">Хуучин код ажиллахаа болино.</span>
+      <button className="rounded-lg bg-brand px-3 py-1.5 text-xs font-bold text-white disabled:opacity-60" disabled={pending}>
+        {pending ? "…" : "Тийм, шинэчлэх"}
+      </button>
+      <button type="button" onClick={() => setAsk(false)} className="text-xs font-bold text-muted underline">
+        Болих
+      </button>
+      {state?.error && <span className="text-xs font-bold text-danger">{state.error}</span>}
     </form>
   );
 }
