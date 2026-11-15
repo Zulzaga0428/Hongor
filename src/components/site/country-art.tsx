@@ -6,12 +6,19 @@ import type { CountryTheme } from "@/content/site";
  * байхгүй бол тугны өнгөнөөс градиент + тугны хэлбэрээс санаа авсан чимэглэл.
  * Зураг ирэхэд site.ts-д `image: "/hero/korea.jpg"` гэж нэмэхэд л болно.
  */
-export function CountryArt({ c, priority = false, big = true }: { c: CountryTheme; priority?: boolean; big?: boolean }) {
-  if (c.image) {
+export function CountryArt({ c, priority = false, big = true, src }: { c: CountryTheme; priority?: boolean; big?: boolean; src?: string }) {
+  const img = src ?? c.image;
+  if (img) {
     return (
-      <div className="absolute inset-0">
-        <Image src={c.image} alt="" fill priority={priority} sizes="100vw" className="object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-black/10" />
+      <div className="absolute inset-0 bg-[#1d2a31]">
+        <Image src={img} alt="" fill priority={priority} sizes={big ? "100vw" : "(min-width: 768px) 34vw, 100vw"} className="object-cover" />
+        {big ? (
+          // Hero: зүүн талын текст уншигдахаар бараан + утсан дээр доороос
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.68)_0%,rgba(0,0,0,0.38)_55%,rgba(0,0,0,0.12)_100%)]" />
+        ) : (
+          // Жижиг карт: доод талын нэр уншигдахаар
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent" />
+        )}
       </div>
     );
   }

@@ -5,13 +5,14 @@ import { CountryArt } from "@/components/site/country-art";
 import { HeroSlider } from "@/components/site/hero-slider";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
+import { BRAND_THEME } from "@/components/theme";
 
 export default async function Landing({ searchParams }: PageProps<"/">) {
   const u = await currentUser();
   const closed = (await searchParams).haagdsan === "1" && u?.role === "org";
 
   return (
-    <div className="bg-white text-ink">
+    <div style={BRAND_THEME} className="bg-white text-ink">
       {/* Хаагдсан байгууллагын ажилтанд «Миний самбар» товч харуулбал дахин энд буцна */}
       <SiteHeader overHero home={u && !closed ? homeFor(u.role) : null} />
       {closed && (

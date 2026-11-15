@@ -32,9 +32,22 @@ export type CountryTheme = {
   programs: { title: string; text: string }[];
   /** Хэлний сургалт хаана байгаа — одоохондоо зөвхөн япон хэл бэлэн */
   courseReady: boolean;
-  /** /public/hero/... — байхгүй бол градиент+бичиг харагдана */
+  /** Нүүрний hero ба карт. /public/hero/... — байхгүй бол градиент+бичиг харагдана */
   image?: string;
+  /** Улсын хуудасны hero (нүүрнийхээс өөр зураг) */
+  pageImage?: string;
 };
+
+/*
+ * Зургийн эх сурвалж — Unsplash License (худалдааны зорилгоор үнэгүй, зохиогчийг
+ * дурдах албагүй ч энд тэмдэглэв). Хүмүүсийн зургийг stock биш, ЖИНХЭНЭ архиваас авна.
+ *   kr-palace  Daniel Bernard     https://unsplash.com/photos/RbaGeW_LbGs
+ *   kr-seoul   Ignat Khailov      https://unsplash.com/photos/7mrkk8iQZFE
+ *   jp-fuji    Max Bender         https://unsplash.com/photos/FuxYvi-hcWQ
+ *   jp-tokyo   Louie Martinez     https://unsplash.com/photos/IocJwyqRv3M
+ *   cz-bridge  William Zhang      https://unsplash.com/photos/6En4WYsNYXM
+ *   cz-vitus   David Fucsku       https://unsplash.com/photos/0yLnMHfkwkU
+ */
 
 export const COUNTRIES: Record<CountrySlug, CountryTheme> = {
   korea: {
@@ -55,6 +68,8 @@ export const COUNTRIES: Record<CountrySlug, CountryTheme> = {
       { title: "Бичиг баримтын туслалцаа", text: "Анкет, баримтаа онлайнаар илгээж, явцаа хянана." },
     ],
     courseReady: false,
+    image: "/hero/kr-palace.jpg",
+    pageImage: "/hero/kr-seoul.jpg",
   },
   japan: {
     slug: "japan",
@@ -74,6 +89,8 @@ export const COUNTRIES: Record<CountrySlug, CountryTheme> = {
       { title: "Япон хэлний сургалт", text: "Анхан, дунд, ахисан шат — онлайн хичээл, тест, багшийн даалгавар." },
     ],
     courseReady: true,
+    image: "/hero/jp-fuji.jpg",
+    pageImage: "/hero/jp-tokyo.jpg",
   },
   czech: {
     slug: "czech",
@@ -93,6 +110,8 @@ export const COUNTRIES: Record<CountrySlug, CountryTheme> = {
       { title: "Бичиг баримтын туслалцаа", text: "Анкет, баримтаа онлайнаар илгээж, явцаа хянана." },
     ],
     courseReady: false,
+    image: "/hero/cz-bridge.jpg",
+    pageImage: "/hero/cz-vitus.jpg",
   },
 };
 

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { COUNTRIES, COUNTRY_ORDER, STEPS, type CountrySlug } from "@/content/site";
 import { currentUser, homeFor } from "@/server/auth";
 import { CountryArt } from "./country-art";
+import { BRAND_THEME } from "@/components/theme";
 import { SiteFooter } from "./site-footer";
 import { SiteHeader } from "./site-header";
 
@@ -13,14 +14,14 @@ export async function CountryPage({ slug }: { slug: CountrySlug }) {
   const c = COUNTRIES[slug];
   const u = await currentUser();
   const others = COUNTRY_ORDER.filter((s) => s !== slug).map((s) => COUNTRIES[s]);
-  const vars = { "--c1": c.primary, "--c2": c.accent, "--cs": c.soft } as React.CSSProperties;
+  const vars = { ...BRAND_THEME, "--c1": c.primary, "--c2": c.accent, "--cs": c.soft } as React.CSSProperties;
 
   return (
     <div style={vars} className="bg-white text-ink">
       <SiteHeader overHero home={u ? homeFor(u.role) : null} />
 
       <section className="relative h-[78svh] min-h-[520px] overflow-hidden text-white">
-        <CountryArt c={c} priority />
+        <CountryArt c={c} priority src={c.pageImage ?? c.image} />
         <div className="relative mx-auto flex h-full max-w-6xl flex-col justify-center px-5 pt-16 lg:px-10">
           <p className="text-sm font-bold text-white/80 lg:text-base">
             {c.hello} · {c.city}
