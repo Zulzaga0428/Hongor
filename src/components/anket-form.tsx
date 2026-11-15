@@ -182,7 +182,7 @@ export function AnketForm({ initial, consented, submitted }: { initial: Values; 
         </label>
       )}
 
-      {state?.error && <p role="alert" className="rounded-2xl bg-pink px-4 py-3 text-sm font-bold text-red-deep">{state.error}</p>}
+      {state?.error && <p role="alert" className="rounded-2xl bg-danger-soft px-4 py-3 text-sm font-bold text-danger">{state.error}</p>}
       {state?.ok && (
         <p role="status" className="rounded-2xl bg-[#dff5ea] px-4 py-3 text-sm font-bold text-green">
           {state.ok}{" "}

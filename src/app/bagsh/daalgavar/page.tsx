@@ -14,7 +14,7 @@ export default async function TeacherAssignments() {
 
   return (
     <>
-      <h1 className="text-2xl font-extrabold">Даалгавар</h1>
+      <h1 className="text-2xl font-bold lg:text-[28px]">Даалгавар</h1>
       <section className="card mt-5 p-5">
         <h2 className="mb-3 font-extrabold">➕ Шинэ даалгавар</h2>
         <NewAssignmentForm />

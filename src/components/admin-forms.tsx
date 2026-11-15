@@ -14,7 +14,7 @@ function submitKeep(action: (fd: FormData) => void) {
 }
 
 function Msg({ state }: { state: FormState }) {
-  if (state?.error) return <p className="text-sm font-bold text-red">{state.error}</p>;
+  if (state?.error) return <p className="text-sm font-bold text-danger">{state.error}</p>;
   if (state?.ok) return <p className="text-sm font-bold text-green">{state.ok}</p>;
   return null;
 }
@@ -66,7 +66,7 @@ export function QuickAssign({ userId, orgs }: { userId: string; orgs: { id: stri
       <button className="rounded-lg bg-brand px-2.5 py-1.5 text-xs font-bold text-white disabled:opacity-40" disabled={!orgId || pending}>
         {pending ? "…" : "Оноох"}
       </button>
-      {state?.error && <span className="text-xs font-bold text-red">{state.error}</span>}
+      {state?.error && <span className="text-xs font-bold text-danger">{state.error}</span>}
     </form>
   );
 }
@@ -168,7 +168,7 @@ export function StageForm({ userId, current }: { userId: string; current: string
         ))}
       </select>
       <input name="note" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Тайлбар (сурагчид харагдана)" className="field" />
-      {state?.error && <p className="text-sm font-bold text-red">{state.error}</p>}
+      {state?.error && <p className="text-sm font-bold text-danger">{state.error}</p>}
       {state?.ok && <p className="text-sm font-bold text-green">{state.ok}</p>}
       <button className="btn btn-red" disabled={pending}>
         {pending ? "Хадгалж байна…" : "Шат солих"}
@@ -194,19 +194,19 @@ export function DeletePerson({ userId, name }: { userId: string; name: string })
         const fd = new FormData(e.currentTarget);
         startTransition(() => action(fd));
       }}
-      className="grid grid-cols-1 gap-3 rounded-3xl border-2 border-red bg-pink p-5"
+      className="grid grid-cols-1 gap-3 rounded-xl border-2 border-danger bg-danger-soft p-5"
     >
       <input type="hidden" name="userId" value={userId} />
-      <p className="text-sm font-bold text-red-deep">
+      <p className="text-sm font-bold text-danger">
         «{name}»-ийн анкет, бичиг баримт, оноо, түүх бүгд бүрмөсөн устна. Буцаах боломжгүй.
       </p>
       <input name="confirm" value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="УСТГАХ гэж бичнэ үү" className="field" />
-      {state?.error && <p className="text-sm font-bold text-red">{state.error}</p>}
+      {state?.error && <p className="text-sm font-bold text-danger">{state.error}</p>}
       <div className="grid grid-cols-2 gap-2">
         <button type="button" onClick={() => setOpen(false)} className="btn btn-ghost">
           Болих
         </button>
-        <button className="btn btn-red" disabled={pending || confirm !== "УСТГАХ"}>
+        <button className="btn bg-danger text-white" disabled={pending || confirm !== "УСТГАХ"}>
           {pending ? "…" : "Устгах"}
         </button>
       </div>

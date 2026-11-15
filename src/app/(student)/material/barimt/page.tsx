@@ -31,7 +31,7 @@ export default async function Barimt() {
                     {top?.status === "rejected" && <Badge tone="pink">Дахин илгээх</Badge>}
                   </div>
                   <p className="text-xs text-muted">{k.hint}</p>
-                  {top?.status === "rejected" && top.note && <p className="mt-1 text-xs font-bold text-red">Шалтгаан: {top.note}</p>}
+                  {top?.status === "rejected" && top.note && <p className="mt-1 text-xs font-bold text-danger">Шалтгаан: {top.note}</p>}
                 </div>
                 {(k.id === "other" || top?.status !== "ok") && <DocUpload kind={k.id} label={top && k.id !== "other" ? "Солих" : "Хуулах"} />}
               </div>

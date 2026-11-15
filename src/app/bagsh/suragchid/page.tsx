@@ -19,7 +19,7 @@ export default async function Students({ searchParams }: PageProps<"/bagsh/surag
 
   return (
     <>
-      <h1 className="text-2xl font-extrabold">Сурагчид</h1>
+      <h1 className="text-2xl font-bold lg:text-[28px]">Сурагчид</h1>
       <div className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1">
         {tab("/bagsh/suragchid", !filter, `Бүгд ${all.length}`)}
         {LEVEL_IDS.map((l) => tab(`/bagsh/suragchid?level=${l}`, filter === l, `${LEVELS[l].name}`))}

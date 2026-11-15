@@ -64,7 +64,7 @@ export function DocUpload({ kind, label = "Хуулах" }: { kind: string; labe
       >
         {busy ? "Хуулж байна…" : label}
       </button>
-      {err && <p className="text-xs font-bold text-red">{err}</p>}
+      {err && <p className="text-xs font-bold text-danger">{err}</p>}
     </div>
   );
 }

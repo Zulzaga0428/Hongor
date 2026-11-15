@@ -1,22 +1,25 @@
 import Link from "next/link";
 import { SignupForm } from "@/components/auth-forms";
-import { Back, Page } from "@/components/ui";
+import { AuthLayout } from "@/components/site/auth-layout";
+import { BRAND } from "@/content/site";
 
-export const metadata = { title: "Бүртгүүлэх — Япон хэл" };
+export const metadata = { title: `Бүртгүүлэх — ${BRAND.name}` };
 
 export default function SignupPage() {
   return (
-    <Page>
-      <Back href="/" />
-      <h1 className="text-2xl font-extrabold">Бүртгүүлэх</h1>
-      <p className="mb-6 mt-1 text-sm text-muted">1 минут л болно. はじめまして！</p>
+    <AuthLayout
+      title="Бүртгүүлэх"
+      subtitle="1 минут л болно. Үнэгүй."
+      footer={
+        <>
+          Бүртгэлтэй юу?{" "}
+          <Link href="/nevtreh" className="font-bold text-brand">
+            Нэвтрэх
+          </Link>
+        </>
+      }
+    >
       <SignupForm />
-      <p className="mt-6 text-center text-sm text-muted">
-        Бүртгэлтэй юу?{" "}
-        <Link href="/nevtreh" className="font-extrabold text-red">
-          Нэвтрэх
-        </Link>
-      </p>
-    </Page>
+    </AuthLayout>
   );
 }

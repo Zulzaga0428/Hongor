@@ -7,7 +7,7 @@ import { LEVELS, LEVEL_IDS, type LevelId } from "@/content/lessons";
 function ErrorBox({ state }: { state: FormState }) {
   if (!state?.error) return null;
   return (
-    <p role="alert" className="rounded-2xl bg-pink px-4 py-3 text-sm font-bold text-red-deep">
+    <p role="alert" className="rounded-2xl bg-danger-soft px-4 py-3 text-sm font-bold text-danger">
       {state.error}
     </p>
   );
@@ -104,7 +104,7 @@ export function SignupForm() {
       </div>
 
       <fieldset className="grid grid-cols-1 gap-2">
-        <legend className="mb-1.5 text-sm font-bold">Түвшнээ сонго</legend>
+        <legend className="mb-1.5 text-sm font-bold">Япон хэлний түвшин</legend>
         <input type="hidden" name="level" value={level} />
         {LEVEL_IDS.map((id) => {
           const on = level === id;
@@ -135,7 +135,7 @@ export function SignupForm() {
             </button>
           );
         })}
-        <p className="text-xs text-muted">Мэдэхгүй бол «Анхан шат»-аас эхэл. Дараа нь сольж болно.</p>
+        <p className="text-xs text-muted">Мэдэхгүй, эсвэл Солонгос/Чех руу явах бол «Анхан шат»-аа үлдээ. Дараа нь сольж болно.</p>
       </fieldset>
 
       <ErrorBox state={state} />

@@ -98,7 +98,7 @@ export function Quiz({ lessonId, questions, nextHref }: { lessonId: string; ques
           </button>
         ))}
       </div>
-      {result && "error" in result && <p className="mt-3 text-sm font-bold text-red">{result.error}</p>}
+      {result && "error" in result && <p className="mt-3 text-sm font-bold text-danger">{result.error}</p>}
       <button type="button" onClick={next} disabled={picked === undefined || pending} className="btn btn-red mt-5">
         {pending ? "Шалгаж байна…" : last ? "Дуусгах" : "Дараах"}
       </button>

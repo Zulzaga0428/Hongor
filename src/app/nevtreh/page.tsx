@@ -1,28 +1,26 @@
 import Link from "next/link";
 import { LoginForm } from "@/components/auth-forms";
-import { Back, Hinomaru, Page } from "@/components/ui";
+import { AuthLayout } from "@/components/site/auth-layout";
+import { BRAND } from "@/content/site";
 
-export const metadata = { title: "Нэвтрэх — Япон хэл" };
+export const metadata = { title: `Нэвтрэх — ${BRAND.name}` };
 
 export default function LoginPage() {
   return (
-    <Page>
-      <Back href="/" />
-      <div className="mb-6 flex items-center gap-3">
-        <Hinomaru size={52} />
-        <div>
-          <h1 className="text-2xl font-extrabold">Тавтай морил</h1>
-          <p className="text-sm text-muted">Утасны дугаар, нууц кодоороо нэвтэр</p>
-        </div>
-      </div>
+    <AuthLayout
+      title="Тавтай морил 👋"
+      subtitle="Утасны дугаар, 4 оронтой нууц кодоороо нэвтэрнэ үү."
+      footer={
+        <>
+          Бүртгэлгүй юу?{" "}
+          <Link href="/burtgel" className="font-bold text-brand">
+            Бүртгүүлэх
+          </Link>
+          <p className="mt-2 text-xs">Нууц кодоо мартсан бол хариуцсан ажилтандаа хандана уу.</p>
+        </>
+      }
+    >
       <LoginForm />
-      <p className="mt-6 text-center text-sm text-muted">
-        Бүртгэлгүй юу?{" "}
-        <Link href="/burtgel" className="font-extrabold text-red">
-          Бүртгүүлэх
-        </Link>
-      </p>
-      <p className="mt-3 text-center text-xs text-muted">Нууц кодоо мартсан бол багшдаа хандана уу.</p>
-    </Page>
+    </AuthLayout>
   );
 }

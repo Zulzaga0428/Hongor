@@ -5,7 +5,7 @@ import { createAssignment, gradeSubmission, submitAssignment, type FormState } f
 import { LEVELS, LEVEL_IDS } from "@/content/lessons";
 
 function Msg({ state }: { state: FormState }) {
-  if (state?.error) return <p role="alert" className="rounded-2xl bg-pink px-4 py-3 text-sm font-bold text-red-deep">{state.error}</p>;
+  if (state?.error) return <p role="alert" className="rounded-2xl bg-danger-soft px-4 py-3 text-sm font-bold text-danger">{state.error}</p>;
   if (state?.ok) return <p role="status" className="rounded-2xl bg-[#dff5ea] px-4 py-3 text-sm font-bold text-green">{state.ok}</p>;
   return null;
 }

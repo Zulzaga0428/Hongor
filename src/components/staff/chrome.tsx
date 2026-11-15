@@ -39,8 +39,8 @@ export function StaffChrome({
   pendingDocs,
   children,
 }: {
-  /** "/home" = сурагч: хайлтгүй, утсан дээр доод цэс */
-  base: "/admin" | "/org" | "/home";
+  /** "/home" = сурагч (утсан дээр доод цэс), "/bagsh" = хэлний багш; хоёуланд хайлтгүй */
+  base: "/admin" | "/org" | "/home" | "/bagsh";
   userName: string;
   orgName: string | null;
   /** Ажилтанд: шалгах баримт. Сурагчид: хийх даалгавар. */
@@ -54,8 +54,16 @@ export function StaffChrome({
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const student = base === "/home";
+  const teacher = base === "/bagsh";
 
-  const items: Item[] = student
+  const items: Item[] = teacher
+    ? [
+        { href: "/bagsh", label: "Самбар", icon: LayoutDashboard },
+        { href: "/bagsh/suragchid", label: "Сурагчид", icon: Users },
+        { href: "/bagsh/daalgavar", label: "Даалгавар", icon: ClipboardList },
+        { href: "/bagsh/profil", label: "Профайл", icon: UserCircle },
+      ]
+    : student
     ? [
         { href: "/home", label: "Нүүр", icon: Home },
         { href: "/hicheel", label: "Хичээл", icon: BookOpen },
@@ -178,7 +186,7 @@ export function StaffChrome({
               <Menu className="h-5 w-5" />
             </button>
           )}
-          {!student && <form
+          {!student && !teacher && <form
             className="relative hidden max-w-sm flex-1 sm:block"
             onSubmit={(e) => {
               e.preventDefault();
@@ -195,9 +203,9 @@ export function StaffChrome({
           </form>}
           <div className="ml-auto flex items-center gap-3">
             <Link
-              href={student ? "/daalgavar" : `${base}/hmuus?f=docs`}
+              href={student ? "/daalgavar" : teacher ? "/bagsh" : `${base}/hmuus?f=docs`}
               className="relative flex h-10 w-10 items-center justify-center rounded-full bg-[#f2f5f6] text-ink/70"
-              aria-label={student ? "Хийх даалгавар" : "Шалгах баримт"}
+              aria-label={student ? "Хийх даалгавар" : teacher ? "Шалгах даалгавар" : "Шалгах баримт"}
             >
               <Bell className="h-5 w-5" />
               {pendingDocs > 0 && (
@@ -207,7 +215,7 @@ export function StaffChrome({
               )}
             </Link>
             <div className="hidden h-8 w-px bg-line sm:block" />
-            <Link href={student ? "/profil" : `${base}/profil`} className="flex items-center gap-2.5">
+            <Link href={student ? "/profil" : teacher ? "/bagsh/profil" : `${base}/profil`} className="flex items-center gap-2.5">
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-sm font-extrabold text-white">{userName.slice(0, 1)}</span>
               <span className="hidden leading-tight sm:block">
                 <span className="block text-sm font-bold">{userName}</span>

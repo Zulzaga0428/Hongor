@@ -1,24 +1,12 @@
+import { BRAND_THEME } from "@/components/theme";
 import { pendingDocCount } from "@/server/applicant";
 import type { Staff } from "@/server/auth";
 import type { User } from "@/server/db/schema";
-import { assignmentsFor } from "@/server/queries";
+import { assignmentsFor, pendingSubmissions } from "@/server/queries";
 import { LEVELS, type LevelId } from "@/content/lessons";
 import { StaffChrome } from "./chrome";
 
-/**
- * Ажилтны хэсэгт улаан/ягаан (сурагчийн япон загвар) өнгийг брэндийн далайн
- * ногоон руу CSS хувьсагчаар дарна — доторх хуудсуудыг нэг бүрчлэн засахгүй.
- */
-const STAFF_THEME = {
-  "--red": "#0f8a7e",
-  "--red-deep": "#0a675e",
-  "--pink": "#e5f4f1",
-  "--sakura": "#9fd8cf",
-  "--bg": "#f4f6f7",
-  "--line": "#e3e8eb",
-  "--ink": "#1d2a31",
-  "--muted": "#6a7a84",
-} as React.CSSProperties;
+const STAFF_THEME = BRAND_THEME;
 
 /** Сурагчийн хүрээ — ажилтны самбартай нэг загвар, утсан дээр доод цэстэй. */
 export async function StudentShell({ user, children }: { user: User; children: React.ReactNode }) {
@@ -27,6 +15,18 @@ export async function StudentShell({ user, children }: { user: User; children: R
   return (
     <div style={STAFF_THEME}>
       <StaffChrome base="/home" userName={user.name} orgName={lvl ? `${lvl.name} · ${lvl.jlpt}` : "Сурагч"} pendingDocs={todo}>
+        {children}
+      </StaffChrome>
+    </div>
+  );
+}
+
+/** Хэлний багшийн хүрээ. Хонх = шалгах даалгавар. */
+export async function TeacherShell({ user, children }: { user: User; children: React.ReactNode }) {
+  const pending = (await pendingSubmissions()).length;
+  return (
+    <div style={STAFF_THEME}>
+      <StaffChrome base="/bagsh" userName={user.name} orgName="Хэлний багш" pendingDocs={pending}>
         {children}
       </StaffChrome>
     </div>

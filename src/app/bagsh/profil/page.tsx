@@ -9,7 +9,7 @@ export default async function TeacherProfile() {
       <div className="flex items-center gap-4">
         <Hinomaru size={64}>先</Hinomaru>
         <div>
-          <h1 className="text-2xl font-extrabold">{t.name}</h1>
+          <h1 className="text-2xl font-bold lg:text-[28px]">{t.name}</h1>
           <p className="text-sm text-muted">Багш · +976 {t.phone}</p>
         </div>
       </div>

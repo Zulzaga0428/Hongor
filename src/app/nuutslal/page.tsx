@@ -1,9 +1,11 @@
 import { Back, Page } from "@/components/ui";
+import { BRAND_THEME } from "@/components/theme";
 
-export const metadata = { title: "Нууцлалын бодлого — Хонгор Түрүү" };
+export const metadata = { title: "Нууцлалын бодлого" };
 
 export default function Privacy() {
   return (
+    <div style={BRAND_THEME} className="min-h-dvh bg-[#f4f6f7]">
     <Page>
       <Back href="/" />
       <h1 className="text-2xl font-extrabold">Нууцлалын бодлого</h1>
@@ -26,5 +28,6 @@ export default function Privacy() {
         </section>
       </div>
     </Page>
+    </div>
   );
 }

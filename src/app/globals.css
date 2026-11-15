@@ -16,6 +16,9 @@
   --brand: #0f8a7e;
   --brand-deep: #0a675e;
   --brand-soft: #e5f4f1;
+  /* Алдаа — брэнд/сэдэв солигдсон ч ҮРГЭЛЖ улаан (--red-ийг ажилтны хэсэгт ногоон болгодог) */
+  --danger: #d93036;
+  --danger-soft: #fdecec;
   color-scheme: light;
 }
 
@@ -34,6 +37,8 @@
   --color-brand: var(--brand);
   --color-brand-deep: var(--brand-deep);
   --color-brand-soft: var(--brand-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
   --font-sans: var(--font-round), system-ui, sans-serif;
 }
 
