@@ -9,9 +9,19 @@ export const BRAND = {
   name: "Гарц",
   tagline: "Гадаадад ажиллах албан ёсны зам",
   partner: "Хонгор Түрүү",
-  phone: "",
-  email: "",
+  /** 8 оронтой, зайгүй — tel: холбоост +976 нэмэгдэнэ */
+  phone: "72015706",
+  address: "Улаанбаатар хот, Сүхбаатар дүүрэг, 1-р хороо, Нарны зам-62, ЮНЕСКО-гийн гудамж, Юнион Билдинг C блок, 16 давхар",
+  /** Газрын зураг хайх үг (Google Maps) */
+  mapQuery: "Union Building, Ulaanbaatar",
+  // ⚠️ Жинхэнэ домэйн авсны дараа холбоно — одоохондоо «#» (Zulzaga 11-16)
+  email: "#",
+  facebook: "#",
+  developer: { name: "ICT Tool", url: "https://icttool.net/" },
 };
+
+/** 72015706 → 7201-5706 */
+export const phoneDisplay = (p: string) => (p.length === 8 ? `${p.slice(0, 4)}-${p.slice(4)}` : p);
 
 export type CountrySlug = "korea" | "japan" | "czech";
 

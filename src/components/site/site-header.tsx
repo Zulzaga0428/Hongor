@@ -21,7 +21,7 @@ export function SiteHeader({ overHero = false, home }: { overHero?: boolean; hom
   }, [overHero]);
 
   const solid = scrolled || open;
-  const links = [...COUNTRY_ORDER.map((s) => ({ href: `/${s}`, label: COUNTRIES[s].name })), { href: "/#surgalt", label: "Сургалт" }, { href: "/#bidnii-tuhai", label: "Бидний тухай" }];
+  const links = [...COUNTRY_ORDER.map((s) => ({ href: `/${s}`, label: COUNTRIES[s].name })), { href: "/#surgalt", label: "Сургалт" }, { href: "/#bidnii-tuhai", label: "Бидний тухай" }, { href: "/#holboo", label: "Холбоо барих" }];
 
   return (
     <header className={`fixed inset-x-0 top-0 z-30 transition-colors duration-300 ${solid ? "bg-white/95 shadow-[0_1px_0_rgba(0,0,0,0.06)] backdrop-blur" : "bg-transparent"}`}>

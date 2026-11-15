@@ -4,6 +4,7 @@ import { currentUser, homeFor } from "@/server/auth";
 import { CountryArt } from "@/components/site/country-art";
 import { HeroSlider } from "@/components/site/hero-slider";
 import { SiteFooter } from "@/components/site/site-footer";
+import { ContactSection } from "@/components/site/contact-section";
 import { SiteHeader } from "@/components/site/site-header";
 import { BRAND_THEME } from "@/components/theme";
 
@@ -139,6 +140,8 @@ export default async function Landing({ searchParams }: PageProps<"/">) {
           })}
         </div>
       </section>
+
+      <ContactSection />
 
       {/* Уриалга */}
       <section className="px-5 pb-20 lg:px-10">
