@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { ArrowLeft, BookOpen, Building2, FileText, GraduationCap, Phone, Target } from "lucide-react";
 import { reviewDoc } from "@/app/material-actions";
-import { COUNTRIES, DOC_KINDS, PAUSED, STAGES, isCountry, stageIndex, stageName } from "@/content/programs";
+import { COUNTRIES, DOC_KINDS, isCountry, stageName } from "@/content/programs";
 import { LEVELS, lessonsFor, type LevelId } from "@/content/lessons";
 import { anketMissing, docsOf, docsProgress, getApplicant, historyOf, listOrgs } from "@/server/applicant";
 import { canSee, type Staff } from "@/server/auth";
@@ -12,6 +12,7 @@ import { progressOf } from "@/server/queries";
 import { formatDate } from "@/components/ui";
 import { AssignOrgForm, DeletePerson, NoteForm, StageForm } from "@/components/admin-forms";
 import { Panel } from "./panel";
+import { StageTrack } from "./stage-track";
 
 function age(birth: string | null) {
   if (!birth) return null;
@@ -38,36 +39,6 @@ const Tag = ({ children, tone = "brand" }: { children: React.ReactNode; tone?: "
   }[tone];
   return <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-bold ${c}`}>{children}</span>;
 };
-
-/** Явцын шат — хэвтээ (EduTrack-ийн progress мэт), утсан дээр гүйлгэнэ. */
-function StageTrack({ stage }: { stage: string }) {
-  const cur = stageIndex(stage);
-  const paused = stage === PAUSED.id;
-  return (
-    <ol className="-mx-1 flex overflow-x-auto px-1 pb-1">
-      {STAGES.map((s, i) => {
-        const done = !paused && i < cur;
-        const now = !paused && i === cur;
-        return (
-          <li key={s.id} className="flex min-w-[76px] flex-1 flex-col items-center">
-            <div className="flex w-full items-center">
-              <span className={`h-1 flex-1 ${i === 0 ? "opacity-0" : done || now ? "bg-brand" : "bg-line"}`} />
-              <span
-                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-extrabold ${
-                  done ? "bg-brand text-white" : now ? "bg-white text-brand ring-[3px] ring-brand" : "bg-[#eef2f3] text-muted"
-                }`}
-              >
-                {done ? "✓" : i + 1}
-              </span>
-              <span className={`h-1 flex-1 ${i === STAGES.length - 1 ? "opacity-0" : done ? "bg-brand" : "bg-line"}`} />
-            </div>
-            <span className={`mt-1.5 px-1 text-center text-[11px] leading-tight ${now ? "font-extrabold text-brand" : done ? "font-bold" : "text-muted"}`}>{s.short}</span>
-          </li>
-        );
-      })}
-    </ol>
-  );
-}
 
 export async function StaffPerson({ staff, id }: { staff: Staff; id: string }) {
   const db = await getDb();

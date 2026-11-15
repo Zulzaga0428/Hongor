@@ -9,7 +9,7 @@ export default async function Assignments() {
 
   return (
     <>
-      <h1 className="text-2xl font-extrabold">Даалгавар</h1>
+      <h1 className="text-2xl font-bold lg:text-[28px]">Даалгавар</h1>
       <p className="mt-1 text-sm text-muted">Багшаас ирсэн даалгавраа хийгээд илгээ</p>
       {list.length === 0 ? (
         <div className="card mt-6 p-6 text-center text-sm text-muted">Одоохондоо даалгавар алга.</div>

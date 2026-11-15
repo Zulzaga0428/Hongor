@@ -43,12 +43,12 @@ function Kpi({ icon: Icon, color, label, value, sub, subTone = "muted", href }: 
   return (
     <Link
       href={href}
-      className="flex flex-col items-start gap-3 rounded-xl border-t-[3px] border-brand bg-white p-4 shadow-[0_1px_3px_rgba(16,24,40,0.06)] transition hover:shadow-md sm:flex-row sm:items-center sm:gap-4 sm:p-5"
+      className="flex min-w-0 flex-col items-start gap-3 rounded-xl border-t-[3px] border-brand bg-white p-4 shadow-[0_1px_3px_rgba(16,24,40,0.06)] transition hover:shadow-md sm:flex-row sm:items-center sm:gap-4 sm:p-5"
     >
       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white sm:h-14 sm:w-14" style={{ background: color }}>
         <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
       </span>
-      <div className="min-w-0">
+      <div className="w-full min-w-0">
         <div className="truncate text-sm text-muted">{label}</div>
         <div className="text-2xl font-extrabold leading-tight">{value}</div>
         <div className={`truncate text-xs ${subTone === "good" ? "text-[#12a150]" : subTone === "bad" ? "text-[#e5484d]" : "text-muted"}`}>{sub}</div>

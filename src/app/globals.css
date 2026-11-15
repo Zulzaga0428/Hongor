@@ -131,11 +131,12 @@ body {
   border-color: var(--red);
 }
 
+/* Ажилтны самбартай нэг хэв маяг (EduTrack): бага бөөрөнхий, саарал сүүдэр */
 .card {
   background: var(--card);
-  border-radius: 1.5rem;
+  border-radius: 0.875rem;
   border: 1px solid var(--line);
-  box-shadow: 0 2px 12px rgba(168, 27, 47, 0.05);
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.06);
 }
 }
 

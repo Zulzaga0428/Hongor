@@ -1,8 +1,7 @@
-import { BottomNav } from "@/components/bottom-nav";
-import { Page } from "@/components/ui";
 import { requireStudent } from "@/server/auth";
+import { StudentShell } from "@/components/staff/shell";
 
 export default async function StudentLayout({ children }: { children: React.ReactNode }) {
-  await requireStudent();
-  return <Page nav={<BottomNav />}>{children}</Page>;
+  const u = await requireStudent();
+  return <StudentShell user={u}>{children}</StudentShell>;
 }

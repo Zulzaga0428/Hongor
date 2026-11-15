@@ -20,7 +20,7 @@ export default async function Material() {
 
   return (
     <>
-      <h1 className="text-2xl font-extrabold">Миний материал</h1>
+      <h1 className="text-2xl font-bold lg:text-[28px]">Миний материал</h1>
       <p className="mt-1 text-sm text-muted">
         {isCountry(a.country) ? `${COUNTRIES[a.country].name} · ${a.program ?? ""}` : "Анкетаа бөглөөд явах улсаа сонго"}
       </p>

@@ -1,5 +1,8 @@
 import { pendingDocCount } from "@/server/applicant";
 import type { Staff } from "@/server/auth";
+import type { User } from "@/server/db/schema";
+import { assignmentsFor } from "@/server/queries";
+import { LEVELS, type LevelId } from "@/content/lessons";
 import { StaffChrome } from "./chrome";
 
 /**
@@ -16,6 +19,19 @@ const STAFF_THEME = {
   "--ink": "#1d2a31",
   "--muted": "#6a7a84",
 } as React.CSSProperties;
+
+/** Сурагчийн хүрээ — ажилтны самбартай нэг загвар, утсан дээр доод цэстэй. */
+export async function StudentShell({ user, children }: { user: User; children: React.ReactNode }) {
+  const todo = (await assignmentsFor(user)).filter((a) => !a.submission).length;
+  const lvl = LEVELS[user.level as LevelId];
+  return (
+    <div style={STAFF_THEME}>
+      <StaffChrome base="/home" userName={user.name} orgName={lvl ? `${lvl.name} · ${lvl.jlpt}` : "Сурагч"} pendingDocs={todo}>
+        {children}
+      </StaffChrome>
+    </div>
+  );
+}
 
 export async function StaffShell({ staff, children }: { staff: Staff; children: React.ReactNode }) {
   const pending = await pendingDocCount(staff.org?.id ?? null);

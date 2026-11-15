@@ -27,7 +27,7 @@ export default async function LessonPage({ params }: PageProps<"/hicheel/[id]">)
           <div className="text-xs font-bold text-muted">
             Хичээл {idx + 1} · {lesson.minutes} мин
           </div>
-          <h1 className="text-2xl font-extrabold">{lesson.title}</h1>
+          <h1 className="text-2xl font-bold lg:text-[28px]">{lesson.title}</h1>
         </div>
         {prog && <Badge tone="green">✓ {prog.score}/{prog.total}</Badge>}
       </div>

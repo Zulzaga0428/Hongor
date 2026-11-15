@@ -11,7 +11,7 @@ export default async function Lessons() {
 
   return (
     <>
-      <h1 className="text-2xl font-extrabold">Хичээл</h1>
+      <h1 className="text-2xl font-bold lg:text-[28px]">Хичээл</h1>
       <p className="jp mt-1 text-sm text-muted">
         {lvl.name} · {lvl.jp} · {lvl.jlpt}
       </p>

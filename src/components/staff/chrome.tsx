@@ -13,6 +13,10 @@ import {
   LogOut,
   Menu,
   Search,
+  BookOpen,
+  ClipboardList,
+  FolderOpen,
+  Home,
   UserCircle,
   UserPlus,
   Users,
@@ -35,9 +39,11 @@ export function StaffChrome({
   pendingDocs,
   children,
 }: {
-  base: "/admin" | "/org";
+  /** "/home" = сурагч: хайлтгүй, утсан дээр доод цэс */
+  base: "/admin" | "/org" | "/home";
   userName: string;
   orgName: string | null;
+  /** Ажилтанд: шалгах баримт. Сурагчид: хийх даалгавар. */
   pendingDocs: number;
   children: React.ReactNode;
 }) {
@@ -47,8 +53,17 @@ export function StaffChrome({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
+  const student = base === "/home";
 
-  const items: Item[] = [
+  const items: Item[] = student
+    ? [
+        { href: "/home", label: "Нүүр", icon: Home },
+        { href: "/hicheel", label: "Хичээл", icon: BookOpen },
+        { href: "/daalgavar", label: "Даалгавар", icon: ClipboardList, badge: pendingDocs },
+        { href: "/material", label: "Материал", icon: FolderOpen },
+        { href: "/profil", label: "Профайл", icon: UserCircle },
+      ]
+    : [
     { href: base, label: "Самбар", icon: LayoutDashboard },
     { href: `${base}/hmuus`, label: "Хүмүүс", icon: Users },
     { href: `${base}/hmuus/shine`, label: "Хүн нэмэх", icon: UserPlus },
@@ -137,23 +152,33 @@ export function StaffChrome({
         {foot}
       </aside>
 
-      {/* Утас: гулсдаг цэс */}
-      {open && <div className="fixed inset-0 z-40 bg-black/30 lg:hidden" onClick={() => setOpen(false)} />}
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-white shadow-2xl transition-transform lg:hidden ${open ? "translate-x-0" : "-translate-x-full"}`}
-        aria-hidden={!open}
-      >
-        {brandHead}
-        {nav}
-        {foot}
-      </aside>
+      {/* Утас: гулсдаг цэс (ажилтанд; сурагчид доод цэс бий) */}
+      {!student && open && <div className="fixed inset-0 z-40 bg-black/30 lg:hidden" onClick={() => setOpen(false)} />}
+      {!student && (
+        <aside
+          className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-white shadow-2xl transition-transform lg:hidden ${open ? "translate-x-0" : "-translate-x-full"}`}
+          aria-hidden={!open}
+        >
+          {brandHead}
+          {nav}
+          {foot}
+        </aside>
+      )}
 
       <div className="lg:pl-64">
         <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-line bg-white px-4 lg:px-8">
-          <button type="button" onClick={() => setOpen(true)} className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand text-white lg:hidden" aria-label="Цэс">
-            <Menu className="h-5 w-5" />
-          </button>
-          <form
+          {student ? (
+            // Сурагч утсан дээр: гамбургер биш лого — цэс нь доор
+            <Link href="/home" className="flex items-center gap-2.5 lg:hidden">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand text-lg font-extrabold text-white">{BRAND.name.slice(0, 1)}</span>
+              <span className="text-lg font-extrabold">{BRAND.name}</span>
+            </Link>
+          ) : (
+            <button type="button" onClick={() => setOpen(true)} className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand text-white lg:hidden" aria-label="Цэс">
+              <Menu className="h-5 w-5" />
+            </button>
+          )}
+          {!student && <form
             className="relative hidden max-w-sm flex-1 sm:block"
             onSubmit={(e) => {
               e.preventDefault();
@@ -167,9 +192,13 @@ export function StaffChrome({
               className="w-full rounded-lg border border-line bg-white py-2 pl-3 pr-10 text-sm outline-none focus:border-brand"
             />
             <Search className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-          </form>
+          </form>}
           <div className="ml-auto flex items-center gap-3">
-            <Link href={`${base}/hmuus?f=docs`} className="relative flex h-10 w-10 items-center justify-center rounded-full bg-[#f2f5f6] text-ink/70" aria-label="Шалгах баримт">
+            <Link
+              href={student ? "/daalgavar" : `${base}/hmuus?f=docs`}
+              className="relative flex h-10 w-10 items-center justify-center rounded-full bg-[#f2f5f6] text-ink/70"
+              aria-label={student ? "Хийх даалгавар" : "Шалгах баримт"}
+            >
               <Bell className="h-5 w-5" />
               {pendingDocs > 0 && (
                 <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#e5484d] px-1 text-[11px] font-bold text-white">
@@ -178,7 +207,7 @@ export function StaffChrome({
               )}
             </Link>
             <div className="hidden h-8 w-px bg-line sm:block" />
-            <Link href={`${base}/profil`} className="flex items-center gap-2.5">
+            <Link href={student ? "/profil" : `${base}/profil`} className="flex items-center gap-2.5">
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-sm font-extrabold text-white">{userName.slice(0, 1)}</span>
               <span className="hidden leading-tight sm:block">
                 <span className="block text-sm font-bold">{userName}</span>
@@ -187,8 +216,31 @@ export function StaffChrome({
             </Link>
           </div>
         </header>
-        <main className="mx-auto w-full max-w-7xl px-4 py-6 lg:px-8 lg:py-8">{children}</main>
+        <main className={`mx-auto w-full max-w-7xl px-4 py-6 lg:px-8 lg:py-8 ${student ? "pb-28 lg:pb-8" : ""}`}>{children}</main>
       </div>
+
+      {/* Сурагч утсан дээр: эрхий хуруунд ойр доод цэс */}
+      {student && (
+        <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
+          <ul className="mx-auto grid max-w-md grid-cols-5">
+            {items.map((it) => {
+              const on = isActive(it.href);
+              const Icon = it.icon;
+              return (
+                <li key={it.href}>
+                  <Link href={it.href} className={`relative flex flex-col items-center gap-1 py-2.5 text-[11px] font-bold ${on ? "text-brand" : "text-muted"}`}>
+                    <span className={`flex h-8 w-12 items-center justify-center rounded-full transition ${on ? "bg-brand-soft" : ""}`}>
+                      <Icon className="h-5 w-5" />
+                    </span>
+                    {it.label}
+                    {!!it.badge && <span className="absolute right-3 top-1.5 h-2.5 w-2.5 rounded-full bg-[#e5484d] ring-2 ring-white" />}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+      )}
     </div>
   );
 }

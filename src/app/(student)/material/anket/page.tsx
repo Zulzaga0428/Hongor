@@ -9,7 +9,7 @@ export default async function Anket() {
   return (
     <>
       <Back href="/material" label="Миний материал" />
-      <h1 className="text-2xl font-extrabold">Анкет</h1>
+      <h1 className="text-2xl font-bold lg:text-[28px]">Анкет</h1>
       <p className="mb-5 mt-1 text-sm text-muted">Үнэн зөв бөглөнө үү — Япон компанид энэ мэдээлэл очно.</p>
       <AnketForm
         initial={{

@@ -14,7 +14,7 @@ export default async function AssignmentPage({ params }: PageProps<"/daalgavar/[
   return (
     <>
       <Back href="/daalgavar" label="Даалгаврууд" />
-      <h1 className="text-2xl font-extrabold">{a.title}</h1>
+      <h1 className="text-2xl font-bold lg:text-[28px]">{a.title}</h1>
       {a.dueAt && <p className="mt-1 text-sm font-bold text-muted">⏰ {formatDate(a.dueAt)} хүртэл</p>}
 
       <section className="mt-5 rounded-3xl bg-pink p-5">

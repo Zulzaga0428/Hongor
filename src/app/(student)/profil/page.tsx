@@ -10,7 +10,7 @@ export default async function Profile() {
       <div className="flex items-center gap-4">
         <Hinomaru size={64}>{u.name.slice(0, 1)}</Hinomaru>
         <div>
-          <h1 className="text-2xl font-extrabold">{u.name}</h1>
+          <h1 className="text-2xl font-bold lg:text-[28px]">{u.name}</h1>
           <p className="text-sm text-muted">+976 {u.phone}</p>
         </div>
       </div>
