@@ -11,9 +11,10 @@ import {
   Users,
 } from "lucide-react";
 import { COUNTRIES, COUNTRY_IDS, PAUSED, STAGES, isCountry, stageName } from "@/content/programs";
-import { listApplicants, pendingDocCount, recentActivity } from "@/server/applicant";
+import { listApplicants, listOrgs, pendingDocCount, recentActivity } from "@/server/applicant";
 import type { Staff } from "@/server/auth";
 import { formatDate } from "@/components/ui";
+import { Panel } from "./panel";
 
 /** Серверт хүсэлт бүрд тооцно — render-ийн цэвэр байдлын дүрмээс гадуур. */
 function isWithinDays(d: Date, days: number) {
@@ -29,18 +30,6 @@ function ago(d: Date) {
   return formatDate(d);
 }
 
-/** EduTrack маягийн хэсэг: цагаан карт, дээд ирмэгт брэндийн зураас. */
-function Panel({ title, action, children, className = "" }: { title: string; action?: React.ReactNode; children: React.ReactNode; className?: string }) {
-  return (
-    <section className={`rounded-xl border-t-[3px] border-brand bg-white shadow-[0_1px_3px_rgba(16,24,40,0.06)] ${className}`}>
-      <div className="flex items-center justify-between gap-3 px-5 pb-1 pt-4">
-        <h2 className="text-[17px] font-bold">{title}</h2>
-        {action}
-      </div>
-      <div className="p-5 pt-3">{children}</div>
-    </section>
-  );
-}
 
 function Kpi({ icon: Icon, color, label, value, sub, subTone = "muted", href }: {
   icon: React.ComponentType<{ className?: string }>;
@@ -71,13 +60,30 @@ function Kpi({ icon: Icon, color, label, value, sub, subTone = "muted", href }: 
 export async function StaffDashboard({ staff }: { staff: Staff }) {
   const orgId = staff.org?.id ?? null;
   const owner = staff.org === null;
-  const [rows, pendingDocs, activity] = await Promise.all([listApplicants(orgId), pendingDocCount(orgId), recentActivity(orgId)]);
+  const [rows, pendingDocs, activity, orgs] = await Promise.all([
+    listApplicants(orgId),
+    pendingDocCount(orgId),
+    recentActivity(orgId),
+    owner ? listOrgs() : Promise.resolve([]),
+  ]);
+  const IN_PROGRESS = ["training", "exam_passed", "interview", "selected", "visa"];
+  const orgRows = orgs.map((o) => {
+    const mine = rows.filter((r) => r.a?.orgId === o.id);
+    return {
+      o,
+      total: mine.length,
+      progress: mine.filter((r) => IN_PROGRESS.includes(r.stage)).length,
+      departed: mine.filter((r) => r.stage === "departed").length,
+      pending: mine.reduce((s, r) => s + r.pendingDocs, 0),
+    };
+  });
   const by = (stage: string) => rows.filter((r) => r.stage === stage).length;
   const newThisWeek = rows.filter((r) => isWithinDays(r.user.createdAt, 7)).length;
   const assignedThisWeek = rows.filter((r) => r.a?.assignedAt && isWithinDays(r.a.assignedAt, 7)).length;
-  const incomplete = rows.filter((r) => r.anketMissing > 0 || r.docs.have < r.docs.need);
   const unassigned = rows.filter((r) => !r.a?.orgId && r.a?.consentAt).length;
   const docPeople = rows.filter((r) => r.pendingDocs > 0);
+  // Баримт шалгуулж буй хүнийг «дутуу»-д давхар харуулахгүй — Анхаарах-д нэг хүн нэг мөр.
+  const incomplete = rows.filter((r) => r.pendingDocs === 0 && (r.anketMissing > 0 || r.docs.have < r.docs.need));
   const base = staff.base;
   const nameOf = (r: { a?: { lastName: string | null; firstName: string | null } | null; user: { name: string } }) =>
     r.a?.lastName && r.a?.firstName ? `${r.a.lastName} ${r.a.firstName}` : r.user.name;
@@ -161,6 +167,75 @@ export async function StaffDashboard({ staff }: { staff: Staff }) {
           </Link>
         )}
       </Panel>
+
+      {/* Платформын эзэнд: байгууллагуудын харьцуулалт */}
+      {owner && (
+        <Panel
+          title="Байгууллагууд"
+          className="mt-6"
+          flush
+          action={
+            <Link href="/admin/baiguullaga" className="flex items-center gap-1 text-sm font-bold text-brand">
+              Удирдах <ArrowRight className="h-4 w-4" />
+            </Link>
+          }
+        >
+          {orgRows.length === 0 ? (
+            <p className="px-5 pb-6 pt-2 text-sm text-muted">
+              Хамтрагч байгууллага алга.{" "}
+              <Link href="/admin/baiguullaga" className="font-bold text-brand underline">
+                Эхнийхээ нэмэх
+              </Link>
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[560px] text-left text-sm">
+                <thead className="border-b border-line text-xs uppercase tracking-wide text-muted">
+                  <tr>
+                    <th className="px-5 py-3 font-bold">Байгууллага</th>
+                    <th className="px-3 py-3 text-right font-bold">Нийт</th>
+                    <th className="px-3 py-3 text-right font-bold">Явцад</th>
+                    <th className="px-3 py-3 text-right font-bold">Нисэв</th>
+                    <th className="px-5 py-3 text-right font-bold">Шалгах баримт</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-line">
+                  {orgRows.map(({ o, total, progress, departed, pending }) => (
+                    <tr key={o.id} className="hover:bg-[#f7faf9]">
+                      <td className="px-5 py-3">
+                        <Link href={`/admin/hmuus?org=${o.id}`} className="flex items-center gap-3">
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-soft text-brand">
+                            <Building2 className="h-[18px] w-[18px]" />
+                          </span>
+                          <span>
+                            <span className="block font-bold hover:text-brand">{o.name}</span>
+                            {!o.active && <span className="text-xs font-bold text-[#e5484d]">хаагдсан</span>}
+                          </span>
+                        </Link>
+                      </td>
+                      <td className="px-3 py-3 text-right font-extrabold">{total}</td>
+                      <td className="px-3 py-3 text-right">{progress}</td>
+                      <td className="px-3 py-3 text-right">{departed ? <span className="font-bold text-[#12a150]">{departed}</span> : 0}</td>
+                      <td className="px-5 py-3 text-right">{pending ? <span className="rounded-full bg-[#fdecec] px-2 py-0.5 text-xs font-bold text-[#e5484d]">{pending}</span> : <span className="text-muted">—</span>}</td>
+                    </tr>
+                  ))}
+                  <tr className="bg-[#fafbfb]">
+                    <td className="px-5 py-3">
+                      <Link href="/admin/hmuus?f=unassigned" className="font-bold text-[#c27c00] hover:underline">
+                        Оноогоогүй (зөвшөөрөлтэй)
+                      </Link>
+                    </td>
+                    <td className="px-3 py-3 text-right font-extrabold">{unassigned}</td>
+                    <td colSpan={3} className="px-5 py-3 text-right text-xs text-muted">
+                      {unassigned ? "Хүмүүс → «Оноогоогүй» хэсгээс шууд оноож болно" : ""}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Panel>
+      )}
 
       <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
         {/* Анхаарах */}

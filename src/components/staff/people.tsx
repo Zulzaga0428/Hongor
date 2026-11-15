@@ -6,6 +6,7 @@ import { listApplicants, listOrgs } from "@/server/applicant";
 import type { Staff } from "@/server/auth";
 import { Badge, formatDate } from "@/components/ui";
 import { StageDots } from "@/components/stepper";
+import { QuickAssign } from "@/components/admin-forms";
 
 export async function StaffPeople({ staff, searchParams }: { staff: Staff; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;
@@ -20,6 +21,7 @@ export async function StaffPeople({ staff, searchParams }: { staff: Staff; searc
 
   let rows = await listApplicants(staff.org?.id ?? null);
   const orgs = owner ? await listOrgs() : [];
+  const activeOrgs = orgs.filter((o) => o.active).map((o) => ({ id: o.id, name: o.name }));
   const total = rows.length;
   if (isStage(stage)) rows = rows.filter((r) => r.stage === stage);
   if (isCountry(country)) rows = rows.filter((r) => r.a?.country === country);
@@ -113,7 +115,17 @@ export async function StaffPeople({ staff, searchParams }: { staff: Staff; searc
                         <StageDots stage={r.stage} />
                       </div>
                     </td>
-                    {owner && <td className="px-3 py-3 text-[13px]">{r.org ? <span className="font-bold text-brand">{r.org.name}</span> : <span className="text-muted">оноогоогүй</span>}</td>}
+                    {owner && (
+                      <td className="px-3 py-3 text-[13px]">
+                        {r.org ? (
+                          <span className="font-bold text-brand">{r.org.name}</span>
+                        ) : r.a?.consentAt && activeOrgs.length ? (
+                          <QuickAssign userId={r.user.id} orgs={activeOrgs} />
+                        ) : (
+                          <span className="text-muted">{r.a?.consentAt ? "оноогоогүй" : "зөвшөөрөлгүй"}</span>
+                        )}
+                      </td>
+                    )}
                     <td className="px-3 py-3">
                       <div className="flex flex-wrap gap-1">
                         <Badge tone={r.docs.have >= r.docs.need ? "green" : "gray"}>

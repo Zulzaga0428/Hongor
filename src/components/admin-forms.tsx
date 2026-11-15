@@ -41,6 +41,36 @@ export function AssignOrgForm({ userId, current, orgs, disabled }: { userId: str
   );
 }
 
+/** Хүснэгтийн мөрөнд шууд оноох — хүний хуудсыг нэг бүрчлэн нээхгүй. */
+export function QuickAssign({ userId, orgs }: { userId: string; orgs: { id: string; name: string }[] }) {
+  const [state, action, pending] = useActionState(assignOrg, undefined);
+  const [orgId, setOrgId] = useState("");
+  if (state?.ok) return <span className="text-xs font-bold text-green">✓ {state.ok}</span>;
+  return (
+    <form onSubmit={submitKeep(action)} className="flex items-center gap-1.5">
+      <input type="hidden" name="userId" value={userId} />
+      <select
+        name="orgId"
+        value={orgId}
+        onChange={(e) => setOrgId(e.target.value)}
+        aria-label="Байгууллага сонгох"
+        className="w-40 rounded-lg border border-line bg-white px-2 py-1.5 text-xs outline-none focus:border-brand"
+      >
+        <option value="">Байгууллага…</option>
+        {orgs.map((o) => (
+          <option key={o.id} value={o.id}>
+            {o.name}
+          </option>
+        ))}
+      </select>
+      <button className="rounded-lg bg-brand px-2.5 py-1.5 text-xs font-bold text-white disabled:opacity-40" disabled={!orgId || pending}>
+        {pending ? "…" : "Оноох"}
+      </button>
+      {state?.error && <span className="text-xs font-bold text-red">{state.error}</span>}
+    </form>
+  );
+}
+
 const COUNTRY_OPTS = [
   { id: "korea", name: "Солонгос" },
   { id: "japan", name: "Япон" },

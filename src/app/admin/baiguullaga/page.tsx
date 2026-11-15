@@ -19,17 +19,17 @@ export default async function Orgs() {
 
   return (
     <>
-      <h1 className="text-2xl font-extrabold">Хамтрагч байгууллагууд</h1>
+      <h1 className="text-2xl font-bold lg:text-[28px]">Хамтрагч байгууллагууд</h1>
       <p className="mt-1 text-sm text-muted">Байгууллага бүр өөрийн самбартай. Зөвхөн өөрт нь оноосон хүмүүсийг харна.</p>
 
       <div className="mt-6 lg:grid lg:grid-cols-[1fr_22rem] lg:items-start lg:gap-6">
         <ul className="grid grid-cols-1 gap-4 lg:order-1">
-          {orgs.length === 0 && <li className="card p-6 text-center text-sm text-muted">Одоохондоо байгууллага алга. Эхнийхээ нэмээрэй →</li>}
+          {orgs.length === 0 && <li className="rounded-xl bg-white p-8 text-center text-sm text-muted">Одоохондоо байгууллага алга. Эхнийхээ нэмээрэй →</li>}
           {orgs.map((o) => {
             const mine = staff.filter((s) => s.orgId === o.id);
             const n = people.filter((p) => p.a?.orgId === o.id).length;
             return (
-              <li key={o.id} className={`card p-5 ${o.active ? "" : "opacity-60"}`}>
+              <li key={o.id} className={`rounded-xl border-t-[3px] border-brand bg-white p-5 shadow-[0_1px_3px_rgba(16,24,40,0.06)] ${o.active ? "" : "opacity-60"}`}>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <h2 className="text-lg font-extrabold">{o.name}</h2>
@@ -80,7 +80,7 @@ export default async function Orgs() {
           })}
         </ul>
 
-        <section className="card mt-6 p-5 lg:sticky lg:top-10 lg:order-2 lg:mt-0">
+        <section className="mt-6 rounded-xl border-t-[3px] border-brand bg-white p-5 shadow-[0_1px_3px_rgba(16,24,40,0.06)] lg:sticky lg:top-10 lg:order-2 lg:mt-0">
           <h2 className="mb-3 font-extrabold">+ Шинэ байгууллага</h2>
           <CreateOrgForm />
         </section>
