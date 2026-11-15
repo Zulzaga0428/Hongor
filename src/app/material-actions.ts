@@ -1,6 +1,6 @@
 "use server";
 
-import { randomUUID } from "node:crypto";
+import { randomInt, randomUUID } from "node:crypto";
 import { and, eq, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -171,6 +171,89 @@ export async function saveStaffNote(_: FormState, fd: FormData): Promise<FormSta
   await ctx.db.update(schema.applicants).set({ staffNote: note || null }).where(eq(schema.applicants.userId, userId));
   revalidatePath(`${ctx.staff.base}/hmuus/${userId}`);
   return { ok: "Тэмдэглэл хадгалагдлаа." };
+}
+
+export type CreatePersonState = (FormState & { pin?: string; id?: string; name?: string; phone?: string }) | undefined;
+
+/**
+ * Оффис дээр ирсэн хүнийг ажилтан бүртгэнэ. 4 оронтой нэвтрэх кодыг систем
+ * үүсгэж ажилтанд НЭГ УДАА харуулна (сан-д зөвхөн hash). Байгууллагын ажилтан
+ * бүртгэсэн бол тэр байгууллагад шууд оноогдоно; платформын эзэн сонгож болно.
+ * Зөвшөөрлийг ажилтан тухайн хүнээс авсан гэдгээ баталгаажуулна.
+ */
+export async function createPerson(_: CreatePersonState, fd: FormData): Promise<CreatePersonState> {
+  const staff = await requireStaff();
+  const name = clean(fd.get("name"), 60);
+  const phone = clean(fd.get("phone")).replace(/\D/g, "");
+  const country = clean(fd.get("country"));
+  const program = clean(fd.get("program"));
+  const jobType = clean(fd.get("jobType"));
+  const lastName = clean(fd.get("lastName"), 60);
+  const firstName = clean(fd.get("firstName"), 60);
+  const birthDate = clean(fd.get("birthDate"), 10);
+  const gender = clean(fd.get("gender"));
+  const education = clean(fd.get("education"));
+  const address = clean(fd.get("address"), 300);
+  const experience = clean(fd.get("experience"), 2000);
+  const level = clean(fd.get("level")) || "anhan";
+  const consent = fd.get("consent") === "on";
+  const pickedOrg = clean(fd.get("orgId"));
+
+  if (name.length < 2 && !(lastName && firstName)) return { error: "Нэрийг бичнэ үү." };
+  if (!/^[0-9]{8}$/.test(phone)) return { error: "Утас 8 оронтой." };
+  if (country && !isCountry(country)) return { error: "Улс буруу." };
+  if (program && (!isCountry(country) || !(COUNTRIES[country].programs as readonly string[]).includes(program))) return { error: "Хөтөлбөр буруу." };
+  if (jobType && !(JOB_TYPES as readonly string[]).includes(jobType)) return { error: "Ажлын чиглэл буруу." };
+  if (birthDate && !/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) return { error: "Төрсөн огноо буруу." };
+  if (gender && gender !== "Эрэгтэй" && gender !== "Эмэгтэй") return { error: "Хүйс буруу." };
+  if (education && !(EDUCATION as readonly string[]).includes(education)) return { error: "Боловсрол буруу." };
+  if (!["anhan", "dund", "ahisan"].includes(level)) return { error: "Хэлний түвшин буруу." };
+  if (!consent) return { error: "Хувийн мэдээлэл боловсруулах зөвшөөрлийг тухайн хүнээс авсан байх ёстой." };
+
+  const db = await getDb();
+  const [taken] = await db.select({ id: schema.users.id }).from(schema.users).where(eq(schema.users.phone, phone)).limit(1);
+  if (taken) return { error: "Энэ дугаараар бүртгэл аль хэдийн байна." };
+
+  let orgId: string | null = staff.org?.id ?? null;
+  if (!staff.org && pickedOrg) {
+    const [o] = await db.select().from(schema.organizations).where(eq(schema.organizations.id, pickedOrg)).limit(1);
+    if (!o || !o.active) return { error: "Байгууллага олдсонгүй." };
+    orgId = o.id;
+  }
+
+  const pin = String(randomInt(0, 10000)).padStart(4, "0");
+  const id = randomUUID();
+  const now = new Date();
+  const display = name || `${lastName} ${firstName}`;
+  await db.insert(schema.users).values({ id, name: display, phone, pinHash: await hashPin(pin), role: "student", level });
+  await db.insert(schema.applicants).values({
+    userId: id,
+    country: country || null,
+    program: program || null,
+    jobType: jobType || null,
+    lastName: lastName || null,
+    firstName: firstName || null,
+    birthDate: birthDate || null,
+    gender: gender || null,
+    education: education || null,
+    address: address || null,
+    experience: experience || null,
+    consentAt: now,
+    orgId,
+    assignedAt: orgId ? now : null,
+  });
+  await db.insert(schema.stageEvents).values({
+    id: randomUUID(),
+    userId: id,
+    stage: "registered",
+    note: "Оффис дээр ажилтан бүртгэв",
+    byName: byLabel(staff),
+    orgId: staff.org?.id ?? null,
+    at: now,
+  });
+  revalidatePath(`${staff.base}/hmuus`);
+  revalidatePath(staff.base);
+  return { ok: "Бүртгэгдлээ.", pin, id, name: display, phone };
 }
 
 // ---------------- Платформын эзэн: байгууллага ----------------

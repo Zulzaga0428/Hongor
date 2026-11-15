@@ -54,12 +54,17 @@ export async function StaffPeople({ staff, searchParams }: { staff: Staff; searc
             {rows.length} хүн{filtered ? ` (нийт ${total})` : ""}
           </p>
         </div>
+        <div className="flex w-full items-center gap-2 sm:w-auto">
+        <Link href={`${base}/hmuus/shine`} className="shrink-0 rounded-lg bg-brand px-4 py-2.5 text-sm font-bold text-white">
+          + Хүн нэмэх
+        </Link>
         <form className="relative w-full sm:w-72">
           {stage && <input type="hidden" name="stage" value={stage} />}
           {f && <input type="hidden" name="f" value={f} />}
           <input name="q" defaultValue={q} placeholder="Нэр, утсаар хайх…" className="w-full rounded-lg border border-line bg-white py-2.5 pl-3 pr-10 text-sm outline-none focus:border-brand" />
           <Search className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
         </form>
+        </div>
       </div>
 
       <div className="mt-5 rounded-xl border-t-[3px] border-brand bg-white shadow-[0_1px_3px_rgba(16,24,40,0.06)]">

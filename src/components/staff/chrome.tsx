@@ -14,6 +14,7 @@ import {
   Menu,
   Search,
   UserCircle,
+  UserPlus,
   Users,
   X,
 } from "lucide-react";
@@ -50,6 +51,7 @@ export function StaffChrome({
   const items: Item[] = [
     { href: base, label: "Самбар", icon: LayoutDashboard },
     { href: `${base}/hmuus`, label: "Хүмүүс", icon: Users },
+    { href: `${base}/hmuus/shine`, label: "Хүн нэмэх", icon: UserPlus },
     { href: `${base}/hmuus?f=docs`, label: "Шалгах баримт", icon: FileCheck2, badge: pendingDocs },
     ...(base === "/admin"
       ? [
@@ -65,6 +67,7 @@ export function StaffChrome({
     const [p, qs] = href.split("?");
     if (qs) return false; // шүүлттэй холбоос — «Хүмүүс» идэвхтэй харагдана
     if (p === base) return path === base;
+    if (p === `${base}/hmuus`) return path === p || (path.startsWith(p + "/") && !path.endsWith("/shine"));
     return path === p || path.startsWith(p + "/");
   };
 
